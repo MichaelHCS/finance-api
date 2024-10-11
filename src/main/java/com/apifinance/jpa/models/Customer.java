@@ -1,51 +1,32 @@
 package com.apifinance.jpa.models;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "customer")
-public class Customer {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
+public class Customer extends BaseEntity {
 
     @Column(nullable = false)
-    private String name; 
+    @NotNull
+    @Size(min = 1, max = 100)
+    private String name;
 
-    @Column(nullable = false, unique = true)
-    private String email; 
+    @Column(nullable = false)
+    @NotNull
+    @Email
+    private String email;
 
-    @Column(name = "phone_number")
-    private String phoneNumber; 
+    @Column(name = "phone_number", nullable = false)
+    @NotNull
+    @Size(min = 10, max = 15)
+    private String phoneNumber;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private final LocalDateTime createdAt; 
-
-    @OneToMany(mappedBy = "customer")
-    private List<Payment> payments = new ArrayList<>(); 
-
-    // Construtor padrão
-    public Customer() {
-        this.createdAt = LocalDateTime.now(); 
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // Getters e Setters
 
     public String getName() {
         return name;
@@ -69,17 +50,5 @@ public class Customer {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public List<Payment> getPayments() {
-        return payments;
-    }
-
-    public void setPayments(List<Payment> payments) {
-        this.payments = payments;
     }
 }

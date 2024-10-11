@@ -1,7 +1,5 @@
 package com.apifinance.jpa.models;
 
-import java.time.LocalDateTime;
-
 import com.apifinance.jpa.enums.TransactionAction;
 
 import jakarta.persistence.Column;
@@ -9,50 +7,48 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
+/**
+ * Classe que representa um registro de transação, incluindo informações sobre
+ * o pagamento, a ação realizada, e os detalhes da transação.
+ */
 @Entity
 @Table(name = "transaction_log")
-public class TransactionLog {
+public class TransactionLog extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
-
+    @NotNull
     @Column(name = "payment_id", nullable = false)
-    private Long paymentId; 
+    private Long paymentId; // ID do pagamento associado
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
-    private TransactionAction action; 
-
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp; 
+    private TransactionAction action; // Ação da transação
 
     @Column(name = "details", columnDefinition = "TEXT")
-    private String details; 
+    private String details; // Detalhes da transação
 
-    // Relacionamento ManyToOne com FraudCheck
-    @ManyToOne(fetch = FetchType.LAZY) // tipo de carregamento
-    @JoinColumn(name = "fraud_check_id", nullable = false) // Coluna que referencia FraudCheck
-    private FraudCheck fraudCheck; // Relacionamento ManyToOne com FraudCheck
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fraud_check_id", nullable = false)
+    private FraudCheck fraudCheck; // Verificação de fraude associada
 
+    // Construtor padrão
     public TransactionLog() {
     }
 
-    public Long getId() {
-        return id;
+    // Construtor com parâmetros
+    public TransactionLog(Long paymentId, TransactionAction action, FraudCheck fraudCheck, String details) {
+        this.paymentId = paymentId;
+        this.action = action;
+        this.fraudCheck = fraudCheck;
+        this.details = details;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    // Getters e Setters
     public Long getPaymentId() {
         return paymentId;
     }
@@ -69,14 +65,6 @@ public class TransactionLog {
         this.action = action;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public String getDetails() {
         return details;
     }
@@ -91,5 +79,19 @@ public class TransactionLog {
 
     public void setFraudCheck(FraudCheck fraudCheck) {
         this.fraudCheck = fraudCheck;
+    }
+
+    // Override toString
+    @Override
+    public String toString() {
+        return "TransactionLog{" +
+                "id=" + getId() + // Utiliza o getId() da BaseEntity
+                ", paymentId=" + paymentId +
+                ", action=" + action +
+                ", details='" + details + '\'' +
+                ", fraudCheck=" + fraudCheck +
+                ", createdAt=" + getCreatedAt() +
+                ", updatedAt=" + getUpdatedAt() +
+                '}';
     }
 }

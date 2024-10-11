@@ -1,82 +1,83 @@
 package com.apifinance.jpa.models;
 
-import java.time.LocalDateTime;
-
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToOne;
+import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 
 import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
 @Entity
 @Table(name = "payment")
-public class Payment {
+public final class Payment extends BaseEntity { // Estendendo a BaseEntity
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
-
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer; 
+    @NotNull
+    private Customer customer;
 
-    @Enumerated(EnumType.STRING) 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
-    private PaymentMethodType paymentMethod; 
+    @NotNull
+    private PaymentMethodType paymentMethod;
 
+    @DecimalMin(value = "0.0", message = "O valor deve ser positivo")
     @Column(nullable = false)
-    private Double amount; 
+    @NotNull
+    private BigDecimal amount;
 
-    @Column(nullable = false)
-    private String currency; 
+    @Column(nullable = false, length = 3)
+    @NotNull
+    @Pattern(regexp = "[A-Z]{3}", message = "A moeda deve estar no formato ISO 4217 (ex: BRL, USD)")
+    private String currency;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt; 
+    @ManyToOne
+    @JoinColumn(name = "fraud_check_id")
+    private FraudCheck fraudCheck;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt; 
-    @Column(name = "fraud_check_id") 
-    private Long fraudCheckId; 
-
-    @Enumerated(EnumType.STRING) 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private PaymentStatus status; 
+    @NotNull
+    private PaymentStatus status = PaymentStatus.PENDING; // Status padrão
 
-    public Payment() {
-        
-        this.createdAt = LocalDateTime.now(); 
-        this.updatedAt = LocalDateTime.now(); 
-        this.status = PaymentStatus.PENDING; 
+    // Construtor padrão (necessário para o JPA)
+    public Payment() {}
+
+    // Construtor com parâmetros
+    public Payment(Customer customer, PaymentMethodType paymentMethod, BigDecimal amount, String currency) {
+        this.customer = customer;
+        this.paymentMethod = paymentMethod;
+        setAmount(amount); // Use o setter para aplicar validação
+        setCurrency(currency); // Use o setter para aplicar validação
+        onCreate(); // Chama o método da classe pai para definir as datas
     }
 
-    
-    public Long getId() {
-        return id;
+    @PrePersist
+    @Override
+    protected void onCreate() {
+        super.onCreate(); // Chama o método da classe pai
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @PreUpdate
+    @Override
+    protected void onUpdate() {
+        super.onUpdate(); // Chama o método da classe pai
     }
 
     public Customer getCustomer() {
         return customer;
-    }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
     }
 
     public void setCustomer(Customer customer) {
@@ -91,11 +92,14 @@ public class Payment {
         this.paymentMethod = paymentMethod;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("O valor deve ser positivo e não nulo");
+        }
         this.amount = amount;
     }
 
@@ -104,31 +108,37 @@ public class Payment {
     }
 
     public void setCurrency(String currency) {
+        // Validação manual da moeda
+        if (currency == null || currency.trim().isEmpty() || !currency.matches("[A-Z]{3}")) {
+            throw new IllegalArgumentException("A moeda deve estar no formato ISO 4217 (ex: BRL, USD) e não pode ser vazia");
+        }
         this.currency = currency;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public FraudCheck getFraudCheck() {
+        return fraudCheck;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setFraudCheck(FraudCheck fraudCheck) {
+        this.fraudCheck = fraudCheck;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public PaymentStatus getStatus() {
+        return status;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
     }
 
-    public Long getFraudCheckId() {
-        return fraudCheckId;
+    // Método para exibir a data formatada
+    public String getFormattedCreatedAt() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return createdAt.format(formatter);
     }
 
-    public void setFraudCheckId(Long fraudCheckId) {
-        this.fraudCheckId = fraudCheckId;
+    public String getFormattedUpdatedAt() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return updatedAt.format(formatter);
     }
-
 }

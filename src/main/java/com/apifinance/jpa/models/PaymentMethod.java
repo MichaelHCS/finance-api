@@ -8,49 +8,52 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
+/**
+ * Classe que representa um método de pagamento associado a um pagamento.
+ */
 @Entity
 @Table(name = "payment_method")
-public class PaymentMethod {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
+public class PaymentMethod extends BaseEntity { // Extende BaseEntity
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private PaymentMethodType type; 
+    @NotNull
+    private PaymentMethodType type;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "details_type", nullable = false)
-    private PaymentMethodDetailsType detailsType; 
+    @NotNull
+    private PaymentMethodDetailsType detailsType;
 
     @Column(name = "details", nullable = false)
-    private String details; 
+    @NotNull
+    @Size(min = 1, max = 255)
+    private String details;
 
-    // Relacionamento ManyToOne com Payment 
+    // Relacionamento ManyToOne com Payment
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id", referencedColumnName = "id")
-    private Payment payment; 
+    @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
+    private Payment payment;
 
-    
+    // Construtor padrão
     public PaymentMethod() {
     }
 
-    public Long getId() {
-        return id;
+    // Construtor com parâmetros
+    public PaymentMethod(PaymentMethodType type, PaymentMethodDetailsType detailsType, String details, Payment payment) {
+        this.type = type;
+        this.detailsType = detailsType;
+        this.details = details;
+        this.payment = payment;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    // Getters e Setters
     public PaymentMethodType getType() {
         return type;
     }
@@ -81,5 +84,17 @@ public class PaymentMethod {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    // Override toString
+    @Override
+    public String toString() {
+        return "PaymentMethod{" +
+                "id=" + getId() +  // Utiliza o getId() da BaseEntity
+                ", type=" + type +
+                ", detailsType=" + detailsType +
+                ", details='" + details + '\'' +
+                ", payment=" + (payment != null ? payment.getId() : null) +
+                '}';
     }
 }

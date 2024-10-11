@@ -1,6 +1,6 @@
 package com.apifinance.jpa.models;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import com.apifinance.jpa.enums.MessageStatus;
 
@@ -9,52 +9,56 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
+/**
+ * Classe que representa uma mensagem RabbitMQ com informações sobre seu conteúdo,
+ * status e timestamps.
+ */
 @Entity
 @Table(name = "rabbitmq_message")
-public class RabbitMQMessage {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
+public class RabbitMQMessage extends BaseEntity { // Extende BaseEntity
 
     @Column(name = "message_content", columnDefinition = "TEXT", nullable = false)
-    private String messageContent; 
+    @NotNull(message = "Message content cannot be null")
+    private String messageContent;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private MessageStatus status; 
+    private MessageStatus status;
 
     @Column(name = "sent_at", nullable = false, updatable = false)
-    private LocalDateTime sentAt; 
+    private ZonedDateTime sentAt;
 
     @Column(name = "processed_at")
-    private LocalDateTime processedAt; 
+    private ZonedDateTime processedAt;
 
-    // Relacionamento ManyToOne com FraudCheck 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fraud_check_id", referencedColumnName = "id")
-    private FraudCheck fraudCheck; // Relacionamento com FraudCheck
+    private FraudCheck fraudCheck;
 
     // Construtor padrão
     public RabbitMQMessage() {
-        this.sentAt = LocalDateTime.now(); // Inicializa a data de envio como a data atual
+        // O sentAt será definido no método @PrePersist
     }
 
-    public Long getId() {
-        return id;
+    // Construtor com parâmetros
+    public RabbitMQMessage(String messageContent, MessageStatus status) {
+        this.messageContent = messageContent;
+        this.status = status;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @PrePersist
+    @Override
+    protected void onCreate() {
+        this.sentAt = ZonedDateTime.now();
     }
 
+    // Getters e Setters
     public String getMessageContent() {
         return messageContent;
     }
@@ -71,19 +75,15 @@ public class RabbitMQMessage {
         this.status = status;
     }
 
-    public LocalDateTime getSentAt() {
+    public ZonedDateTime getSentAt() {
         return sentAt;
     }
 
-    public void setSentAt(LocalDateTime sentAt) {
-        this.sentAt = sentAt;
-    }
-
-    public LocalDateTime getProcessedAt() {
+    public ZonedDateTime getProcessedAt() {
         return processedAt;
     }
 
-    public void setProcessedAt(LocalDateTime processedAt) {
+    public void setProcessedAt(ZonedDateTime processedAt) {
         this.processedAt = processedAt;
     }
 
@@ -93,5 +93,17 @@ public class RabbitMQMessage {
 
     public void setFraudCheck(FraudCheck fraudCheck) {
         this.fraudCheck = fraudCheck;
+    }
+
+    @Override
+    public String toString() {
+        return "RabbitMQMessage{" +
+                "id=" + getId() +  // Utiliza o getId() da BaseEntity
+                ", messageContent='" + messageContent + '\'' +
+                ", status=" + status +
+                ", sentAt=" + sentAt +
+                ", processedAt=" + processedAt +
+                ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : null) + // Mostra apenas o ID da fraudCheck para evitar recursão infinita
+                '}';
     }
 }
