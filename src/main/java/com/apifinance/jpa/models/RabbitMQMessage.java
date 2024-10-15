@@ -2,60 +2,46 @@ package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
 
-import com.apifinance.jpa.enums.MessageStatus;
+import com.apifinance.jpa.enums.rabbitmqMessageStatus; // Corrigido para convenção de nomenclatura
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Classe que representa uma mensagem RabbitMQ com informações sobre seu conteúdo,
- * status e timestamps.
+ * Classe que representa uma mensagem no RabbitMQ.
  */
 @Entity
 @Table(name = "rabbitmq_message")
-public class RabbitMQMessage extends BaseEntity { // Extende BaseEntity
+public class RabbitMQMessage extends BaseEntity {
 
-    @Column(name = "message_content", columnDefinition = "TEXT", nullable = false)
-    @NotNull(message = "Message content cannot be null")
-    private String messageContent;
+    @Column(name = "message_content", nullable = false)
+    @NotNull
+    private String messageContent; // Conteúdo da mensagem
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private MessageStatus status;
+    @Column(nullable = false)
+    @NotNull
+    private rabbitmqMessageStatus status; // Status da mensagem
 
-    @Column(name = "sent_at", nullable = false, updatable = false)
-    private ZonedDateTime sentAt;
+    @Column(name = "sent_at", nullable = false)
+    @NotNull
+    private ZonedDateTime sentAt; // Data e hora de envio da mensagem
 
-    @Column(name = "processed_at")
-    private ZonedDateTime processedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fraud_check_id", referencedColumnName = "id")
-    private FraudCheck fraudCheck;
+    @Column(name = "processed_at") // Data e hora de processamento da mensagem
+    private ZonedDateTime processedAt; // Pode ser nulo se não processado ainda
 
     // Construtor padrão
-    public RabbitMQMessage() {
-        // O sentAt será definido no método @PrePersist
-    }
+    public RabbitMQMessage() {}
 
     // Construtor com parâmetros
-    public RabbitMQMessage(String messageContent, MessageStatus status) {
+    public RabbitMQMessage(String messageContent, rabbitmqMessageStatus status, ZonedDateTime sentAt) {
         this.messageContent = messageContent;
         this.status = status;
-    }
-
-    @PrePersist
-    @Override
-    protected void onCreate() {
-        this.sentAt = ZonedDateTime.now();
+        this.sentAt = sentAt;
     }
 
     // Getters e Setters
@@ -67,16 +53,20 @@ public class RabbitMQMessage extends BaseEntity { // Extende BaseEntity
         this.messageContent = messageContent;
     }
 
-    public MessageStatus getStatus() {
+    public rabbitmqMessageStatus getStatus() {
         return status;
     }
 
-    public void setStatus(MessageStatus status) {
+    public void setStatus(rabbitmqMessageStatus status) {
         this.status = status;
     }
 
     public ZonedDateTime getSentAt() {
         return sentAt;
+    }
+
+    public void setSentAt(ZonedDateTime sentAt) {
+        this.sentAt = sentAt;
     }
 
     public ZonedDateTime getProcessedAt() {
@@ -87,23 +77,15 @@ public class RabbitMQMessage extends BaseEntity { // Extende BaseEntity
         this.processedAt = processedAt;
     }
 
-    public FraudCheck getFraudCheck() {
-        return fraudCheck;
-    }
-
-    public void setFraudCheck(FraudCheck fraudCheck) {
-        this.fraudCheck = fraudCheck;
-    }
-
+    // Override toString
     @Override
     public String toString() {
         return "RabbitMQMessage{" +
-                "id=" + getId() +  // Utiliza o getId() da BaseEntity
+                "id=" + getId() + // Utiliza o getId() da BaseEntity
                 ", messageContent='" + messageContent + '\'' +
                 ", status=" + status +
                 ", sentAt=" + sentAt +
                 ", processedAt=" + processedAt +
-                ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : null) + // Mostra apenas o ID da fraudCheck para evitar recursão infinita
                 '}';
     }
 }

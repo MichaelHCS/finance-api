@@ -1,5 +1,7 @@
 package com.apifinance.jpa.models;
 
+import java.time.ZonedDateTime;
+
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckResult;
 
@@ -13,51 +15,53 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Classe que representa a verificação de fraude.
+ */
 @Entity
 @Table(name = "fraud_check") // Tabela "fraud_check"
 public class FraudCheck extends BaseEntity {
 
-    @NotNull // Validação para garantir que o paymentId não seja nulo
-    @Column(name = "payment_id", nullable = false)
-    private Long paymentId; // ID do pagamento associado
+    @NotNull // Validação para garantir que o pagamento não seja nulo
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", nullable = false) // Referência à tabela Payment
+    private Payment payment; // Pagamento associado a esta verificação de fraude
 
     @Enumerated(EnumType.STRING)
     @NotNull // Validação para garantir que o fraudStatus não seja nulo
-    @Column(name = "fraud_status", nullable = false)
-    private FraudCheckResult fraudStatus; // Status da verificação de fraude
+    @Column(name = "fraud_status", nullable = false) // Atributo fraud_status
+    private FraudCheckResult fraudStatus; // Resultado da verificação de fraude
 
     @Enumerated(EnumType.STRING)
-    @NotNull // Validação para garantir que o checkReason não seja nulo
-    @Column(name = "check_reason", nullable = false)
-    private FraudCheckReason checkReason; // Razão da verificação de fraude
+    @Column(name = "check_reason") // Tornando-o opcional
+    private FraudCheckReason checkReason; // Motivo do resultado da análise de fraude
 
-    @Column(name = "rabbitmq_message_id")
+    @NotNull // Validação para garantir que a data e hora não sejam nulas
+    @Column(name = "fraud_checked_at", nullable = false) // Renomeado para fraud_checked_at
+    private ZonedDateTime fraudCheckedAt; // Data e hora da verificação de fraude
+
+    @Column(name = "rabbitmq_message_id") // Atributo rabbitmq_message_id
     private Long rabbitmqMessageId; // ID da mensagem RabbitMQ associada
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Payment payment; // Pagamento associado a esta verificação de fraude
-
     // Construtor padrão
-    public FraudCheck() {
-        // Construtor padrão
-    }
+    public FraudCheck() {}
 
     // Construtor com parâmetros
-    public FraudCheck(Long paymentId, FraudCheckResult fraudStatus, FraudCheckReason checkReason, Long rabbitmqMessageId) {
-        this.paymentId = paymentId;
+    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, ZonedDateTime fraudCheckedAt, Long rabbitmqMessageId) {
+        this.payment = payment;
         this.fraudStatus = fraudStatus;
         this.checkReason = checkReason;
+        this.fraudCheckedAt = fraudCheckedAt;
         this.rabbitmqMessageId = rabbitmqMessageId;
     }
 
     // Getters e Setters
-    public Long getPaymentId() {
-        return paymentId;
+    public Payment getPayment() {
+        return payment;
     }
 
-    public void setPaymentId(Long paymentId) {
-        this.paymentId = paymentId;
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public FraudCheckResult getFraudStatus() {
@@ -76,6 +80,14 @@ public class FraudCheck extends BaseEntity {
         this.checkReason = checkReason;
     }
 
+    public ZonedDateTime getFraudCheckedAt() {
+        return fraudCheckedAt;
+    }
+
+    public void setFraudCheckedAt(ZonedDateTime fraudCheckedAt) {
+        this.fraudCheckedAt = fraudCheckedAt;
+    }
+
     public Long getRabbitmqMessageId() {
         return rabbitmqMessageId;
     }
@@ -84,22 +96,14 @@ public class FraudCheck extends BaseEntity {
         this.rabbitmqMessageId = rabbitmqMessageId;
     }
 
-    public Payment getPayment() {
-        return payment;
-    }
-
-    public void setPayment(Payment payment) {
-        this.payment = payment;
-    }
-
-    // Override toString
     @Override
     public String toString() {
         return "FraudCheck{" +
-                "id=" + getId() +  // Utiliza o getId() da BaseEntity
-                ", paymentId=" + paymentId +
+                "id=" + getId() +  
+                ", paymentId=" + (payment != null ? payment.getId() : null) + 
                 ", fraudStatus=" + fraudStatus +
                 ", checkReason=" + checkReason +
+                ", fraudCheckedAt=" + fraudCheckedAt +
                 ", rabbitmqMessageId=" + rabbitmqMessageId +
                 '}';
     }

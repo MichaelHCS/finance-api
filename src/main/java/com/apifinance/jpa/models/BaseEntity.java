@@ -1,8 +1,7 @@
 package com.apifinance.jpa.models;
 
-import java.time.ZonedDateTime;
-
-import jakarta.persistence.Column;
+import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,69 +9,70 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
-/**
- * Classe base que contém campos comuns para entidades.
- */
 @MappedSuperclass
 public abstract class BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Long id; // ID da entidade
+    protected Long id;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    protected ZonedDateTime createdAt; // Data/hora de criação
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    protected LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    protected ZonedDateTime updatedAt; // Data/hora da última atualização
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    protected LocalDateTime updatedAt;
 
-    @Column(name = "checked_at") // Adicionei a anotação para o campo checkedAt
-    protected ZonedDateTime checkedAt; // Data/hora da verificação
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    protected LocalDateTime checkedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = ZonedDateTime.now(); // Define a data/hora atual
-        updatedAt = createdAt; // Inicializa updatedAt com o mesmo valor de createdAt
-        checkedAt = null; // Inicializa checkedAt como nulo
+    public BaseEntity() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.checkedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = ZonedDateTime.now(); // Atualiza updatedAt com a data/hora atual
-    }
-
-    // Getters
+    // Getters e Setters
     public Long getId() {
         return id;
     }
 
-    public ZonedDateTime getCreatedAt() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public ZonedDateTime getUpdatedAt() {
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public ZonedDateTime getCheckedAt() { // Getter para checkedAt
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getCheckedAt() {
         return checkedAt;
     }
 
-    public void setCheckedAt(ZonedDateTime checkedAt) { // Setter para checkedAt
+    public void setCheckedAt(LocalDateTime checkedAt) {
         this.checkedAt = checkedAt;
     }
 
-    // Override equals e hashCode
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BaseEntity)) return false;
-        BaseEntity that = (BaseEntity) o;
-        return id != null && id.equals(that.id);
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.checkedAt = now;
     }
 
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+        this.checkedAt = LocalDateTime.now();
     }
 }

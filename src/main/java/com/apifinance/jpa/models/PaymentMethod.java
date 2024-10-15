@@ -24,25 +24,26 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     @NotNull
-    private PaymentMethodType type;
+    private PaymentMethodType type; // Tipo de pagamento
 
     @Enumerated(EnumType.STRING)
     @Column(name = "details_type", nullable = false)
     @NotNull
-    private PaymentMethodDetailsType detailsType;
+    private PaymentMethodDetailsType detailsType; // Tipo de detalhes do pagamento
 
     @Column(name = "details", nullable = false)
     @NotNull
     @Size(min = 1, max = 255)
-    private String details;
+    private String details; // Detalhes do pagamento
 
     // Relacionamento ManyToOne com Payment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
-    private Payment payment;
+    private Payment payment; // Pagamento associado
 
     // Construtor padrão
     public PaymentMethod() {
+        // Necessário para o JPA
     }
 
     // Construtor com parâmetros
@@ -90,11 +91,11 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     @Override
     public String toString() {
         return "PaymentMethod{" +
-                "id=" + getId() +  // Utiliza o getId() da BaseEntity
+                "id=" + getId() + // Utiliza o getId() da BaseEntity
                 ", type=" + type +
                 ", detailsType=" + detailsType +
                 ", details='" + details + '\'' +
-                ", payment=" + (payment != null ? payment.getId() : null) +
+                ", paymentId=" + (payment != null ? payment.getId() : null) + // Referência ao ID do pagamento
                 '}';
     }
 }

@@ -4,7 +4,6 @@ public enum PaymentMethodType {
     CREDIT_CARD("Cartão de Crédito", "CREDIT_CARD"),
     DEBIT_CARD("Cartão de Débito", "DEBIT_CARD"),
     BOLETO("Boleto", "BOLETO"),
-    PAYPAL("PayPal", "PAYPAL"),
     PIX("PIX", "PIX");
 
     private final String description; // Descrição do método de pagamento
