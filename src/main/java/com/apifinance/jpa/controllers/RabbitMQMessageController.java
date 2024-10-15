@@ -20,7 +20,7 @@ import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
 import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
 
 @RestController
-@RequestMapping("/rabbitmq-messages")
+@RequestMapping("/rabbitmq_message")
 public class RabbitMQMessageController {
 
     @Autowired

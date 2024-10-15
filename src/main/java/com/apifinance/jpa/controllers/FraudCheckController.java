@@ -21,7 +21,7 @@ import com.apifinance.jpa.services.FraudCheckService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/fraud-checks")
+@RequestMapping("/fraud-check")
 public class FraudCheckController {
 
     @Autowired
