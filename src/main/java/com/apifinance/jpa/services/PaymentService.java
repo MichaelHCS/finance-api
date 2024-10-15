@@ -3,22 +3,28 @@ package com.apifinance.jpa.services;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import com.apifinance.jpa.enums.PaymentStatus;
-import com.apifinance.jpa.enums.rabbitmqMessageStatus;
-import com.apifinance.jpa.exceptions.PaymentNotFoundException;
-import com.apifinance.jpa.models.Payment;
-import com.apifinance.jpa.models.RabbitMQMessage;
-import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
-import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service; // Importando a classe TransactionLog
+import org.springframework.transaction.annotation.Transactional; // Importando a classe PaymentMethod
+
+import com.apifinance.jpa.enums.PaymentMethodDetailsType;
+import com.apifinance.jpa.enums.PaymentStatus;
+import com.apifinance.jpa.enums.TransactionAction;
+import com.apifinance.jpa.enums.rabbitmqMessageStatus; // Importando o repositório TransactionLog
+import com.apifinance.jpa.exceptions.PaymentNotFoundException; // Importando o repositório PaymentMethod
+import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.PaymentMethod;
+import com.apifinance.jpa.models.RabbitMQMessage;
+import com.apifinance.jpa.models.TransactionLog;
+import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
+import com.apifinance.jpa.repositories.PaymentMethodRepository;
+import com.apifinance.jpa.repositories.PaymentRepository;
+import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
+import com.apifinance.jpa.repositories.TransactionLogRepository;
 
 @Service
 public class PaymentService {
@@ -28,13 +34,19 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMQMessageRepository rabbitmqMessageRepository;
+    private final TransactionLogRepository transactionLogRepository; // Adicionando o repositório TransactionLog
+    private final PaymentMethodRepository paymentMethodRepository; // Adicionando o repositório PaymentMethod
 
     @Autowired
     public PaymentService(PaymentRepository paymentRepository, RabbitTemplate rabbitTemplate,
-                          RabbitMQMessageRepository rabbitmqMessageRepository) {
+                          RabbitMQMessageRepository rabbitmqMessageRepository,
+                          TransactionLogRepository transactionLogRepository,
+                          PaymentMethodRepository paymentMethodRepository) {
         this.paymentRepository = paymentRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.rabbitmqMessageRepository = rabbitmqMessageRepository;
+        this.transactionLogRepository = transactionLogRepository; // Inicializando o repositório de logs
+        this.paymentMethodRepository = paymentMethodRepository; // Inicializando o repositório de métodos de pagamento
     }
 
     // Criar pagamento com status "Aguardando análise de fraude" e enviar mensagem RabbitMQ
@@ -50,6 +62,14 @@ public class PaymentService {
         rabbitMQMessage.setStatus(rabbitmqMessageStatus.PENDING);
         rabbitMQMessage.setSentAt(ZonedDateTime.now());
         rabbitmqMessageRepository.save(rabbitMQMessage);
+
+        // Criar log de transação
+        TransactionLog transactionLog = new TransactionLog(); // Instanciando o log de transação
+        transactionLog.setPayment(savedPayment); // Associar o pagamento ao log
+        transactionLog.setAction(TransactionAction.PAYMENT_CREATED); // Ação a ser registrada
+        transactionLog.setTimestamp(ZonedDateTime.now()); // Usando a data e hora atual
+        transactionLog.setDetails(PaymentMethodDetailsType.BANK.name()); // Adicionando detalhes
+        transactionLogRepository.save(transactionLog); // Salvando o log de transação
 
         // Enviar mensagem para RabbitMQ
         sendRabbitMQMessage(rabbitMQMessage);
@@ -104,5 +124,24 @@ public class PaymentService {
     public void deletePayment(Long id) {
         Payment payment = getPaymentById(id);
         paymentRepository.delete(payment);
+    }
+
+    // Criar método de pagamento
+    @Transactional
+    public PaymentMethod createPaymentMethod(PaymentMethod paymentMethod) {
+        return paymentMethodRepository.save(paymentMethod);
+    }
+
+    // Listar todos os métodos de pagamento
+    public List<PaymentMethod> getAllPaymentMethods() {
+        return paymentMethodRepository.findAll();
+    }
+
+    // Deletar método de pagamento
+    @Transactional
+    public void deletePaymentMethod(Long id) {
+        PaymentMethod paymentMethod = paymentMethodRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Payment method not found with id " + id));
+        paymentMethodRepository.delete(paymentMethod);
     }
 }

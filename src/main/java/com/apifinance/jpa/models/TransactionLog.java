@@ -41,10 +41,10 @@ public class TransactionLog extends BaseEntity {
     public TransactionLog() {}
 
     // Construtor com parâmetros
-    public TransactionLog(Payment payment, TransactionAction action, ZonedDateTime timestamp, String details) {
+    public TransactionLog(Payment payment, TransactionAction action, String details) {
         this.payment = payment;
         this.action = action;
-        this.timestamp = timestamp;
+        this.timestamp = ZonedDateTime.now(); // Define timestamp na criação
         this.details = details;
     }
 
