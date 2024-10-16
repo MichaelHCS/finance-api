@@ -29,6 +29,7 @@ public class Customer extends BaseEntity {
     @Size(min = 10, max = 15) // Validação de tamanho para o número de telefone
     private String phoneNumber; // Número de telefone
 
+    
     // Construtor padrão
     public Customer() {
         // O createdAt e updatedAt são gerenciados na classe BaseEntity

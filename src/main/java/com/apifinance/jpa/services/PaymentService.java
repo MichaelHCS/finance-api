@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service; // Importando a classe Transactio
 import org.springframework.transaction.annotation.Transactional; // Importando a classe PaymentMethod
 
 import com.apifinance.jpa.enums.PaymentMethodDetailsType;
+import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.TransactionAction;
 import com.apifinance.jpa.enums.rabbitmqMessageStatus; // Importando o repositório TransactionLog
@@ -50,6 +51,15 @@ public class PaymentService {
         this.paymentMethodRepository = paymentMethodRepository; // Inicializando o repositório de métodos de pagamento
     }
 
+    @Transactional
+    public void deletePayment(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + paymentId));
+        
+        paymentRepository.delete(payment);
+        logger.info("Pagamento excluído com sucesso: " + payment);
+    }
+
     // Criar pagamento com status "Aguardando análise de fraude" e enviar mensagem RabbitMQ
     @Transactional
     public Payment createPayment(Payment payment) {
@@ -79,6 +89,13 @@ public class PaymentService {
 
         // Enviar mensagem para RabbitMQ
         sendRabbitMQMessage(savedMessage);
+
+        PaymentMethod paymentMethod = new PaymentMethod();
+        paymentMethod.setType(PaymentMethodType.CREDIT_CARD); // Defina o tipo de pagamento
+        paymentMethod.setDetails(PaymentMethodDetailsType.BANK.name());
+        paymentMethod.setPayment(savedPayment);
+
+        paymentMethodRepository.save(paymentMethod);
 
         return savedPayment; // Retorna o pagamento salvo
     }
@@ -127,29 +144,5 @@ public class PaymentService {
         return paymentRepository.save(existingPayment);
     }
 
-    // Deletar pagamento
-    @Transactional
-    public void deletePayment(Long id) {
-        Payment payment = getPaymentById(id);
-        paymentRepository.delete(payment);
-    }
-
-    // Criar método de pagamento
-    @Transactional
-    public PaymentMethod createPaymentMethod(PaymentMethod paymentMethod) {
-        return paymentMethodRepository.save(paymentMethod);
-    }
-
-    // Listar todos os métodos de pagamento
-    public List<PaymentMethod> getAllPaymentMethods() {
-        return paymentMethodRepository.findAll();
-    }
-
-    // Deletar método de pagamento
-    @Transactional
-    public void deletePaymentMethod(Long id) {
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment method not found with id " + id));
-        paymentMethodRepository.delete(paymentMethod);
-    }
+    
 }

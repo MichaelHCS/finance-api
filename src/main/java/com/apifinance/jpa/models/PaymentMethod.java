@@ -1,6 +1,5 @@
 package com.apifinance.jpa.models;
 
-import com.apifinance.jpa.enums.PaymentMethodDetailsType;
 import com.apifinance.jpa.enums.PaymentMethodType;
 
 import jakarta.persistence.Column;
@@ -26,10 +25,6 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     @NotNull
     private PaymentMethodType type; // Tipo de pagamento
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "details_type", nullable = false)
-    @NotNull
-    private PaymentMethodDetailsType detailsType; // Tipo de detalhes do pagamento
 
     @Column(name = "details", nullable = false)
     @NotNull
@@ -47,9 +42,8 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     }
 
     // Construtor com parâmetros
-    public PaymentMethod(PaymentMethodType type, PaymentMethodDetailsType detailsType, String details, Payment payment) {
+    public PaymentMethod(PaymentMethodType type, String details, Payment payment) {
         this.type = type;
-        this.detailsType = detailsType;
         this.details = details;
         this.payment = payment;
     }
@@ -63,13 +57,6 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
         this.type = type;
     }
 
-    public PaymentMethodDetailsType getDetailsType() {
-        return detailsType;
-    }
-
-    public void setDetailsType(PaymentMethodDetailsType detailsType) {
-        this.detailsType = detailsType;
-    }
 
     public String getDetails() {
         return details;
@@ -93,7 +80,6 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
         return "PaymentMethod{" +
                 "id=" + getId() + // Utiliza o getId() da BaseEntity
                 ", type=" + type +
-                ", detailsType=" + detailsType +
                 ", details='" + details + '\'' +
                 ", paymentId=" + (payment != null ? payment.getId() : null) + // Referência ao ID do pagamento
                 '}';
