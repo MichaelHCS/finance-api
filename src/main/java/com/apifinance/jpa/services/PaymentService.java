@@ -36,6 +36,7 @@ public class PaymentService {
     private final RabbitMQMessageRepository rabbitmqMessageRepository;
     private final TransactionLogRepository transactionLogRepository; // Adicionando o repositório TransactionLog
     private final PaymentMethodRepository paymentMethodRepository; // Adicionando o repositório PaymentMethod
+    private ZonedDateTime processedAt;
 
     @Autowired
     public PaymentService(PaymentRepository paymentRepository, RabbitTemplate rabbitTemplate,
@@ -54,14 +55,19 @@ public class PaymentService {
     public Payment createPayment(Payment payment) {
         // Definir status inicial do pagamento
         payment.setStatus(PaymentStatus.PENDING); // Ajustar para o status desejado
-        Payment savedPayment = paymentRepository.save(payment);
 
         // Criar registro na tabela rabbitmq_message
         RabbitMQMessage rabbitMQMessage = new RabbitMQMessage();
         rabbitMQMessage.setMessageContent("Payment Created");
         rabbitMQMessage.setStatus(rabbitmqMessageStatus.PENDING);
         rabbitMQMessage.setSentAt(ZonedDateTime.now());
-        rabbitmqMessageRepository.save(rabbitMQMessage);
+        rabbitMQMessage.setProcessedAt(processedAt);
+        RabbitMQMessage savedMessage = rabbitmqMessageRepository.save(rabbitMQMessage);
+
+        payment.setRabbitMQMessage(savedMessage);  // Certifique-se de que há um campo para essa associação no Payment
+        
+        
+        Payment savedPayment = paymentRepository.save(payment); // Salve novamente o pagamento com a associação
 
         // Criar log de transação
         TransactionLog transactionLog = new TransactionLog(); // Instanciando o log de transação
@@ -72,7 +78,7 @@ public class PaymentService {
         transactionLogRepository.save(transactionLog); // Salvando o log de transação
 
         // Enviar mensagem para RabbitMQ
-        sendRabbitMQMessage(rabbitMQMessage);
+        sendRabbitMQMessage(savedMessage);
 
         return savedPayment; // Retorna o pagamento salvo
     }
@@ -87,12 +93,14 @@ public class PaymentService {
 
             // Atualizar o status para enviado após sucesso
             rabbitMQMessage.setStatus(rabbitmqMessageStatus.SENT);
+            rabbitMQMessage.setProcessedAt(ZonedDateTime.now());
             rabbitmqMessageRepository.save(rabbitMQMessage);
         } catch (AmqpException e) {
             logger.error("Error sending message to RabbitMQ: {}", e.getMessage());
 
             // Atualizar o status para erro em caso de falha
             rabbitMQMessage.setStatus(rabbitmqMessageStatus.ERROR);
+            rabbitMQMessage.setProcessedAt(ZonedDateTime.now());
             rabbitmqMessageRepository.save(rabbitMQMessage);
         } catch (Exception e) {
             logger.error("Unexpected error: {}", e.getMessage());

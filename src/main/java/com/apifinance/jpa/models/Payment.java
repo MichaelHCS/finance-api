@@ -50,6 +50,10 @@ public final class Payment extends BaseEntity {
     @JoinColumn(name = "fraud_check_id")
     private FraudCheck fraudCheck;
 
+    @ManyToOne // Define um relacionamento ManyToOne com RabbitMQMessage
+    @JoinColumn(name = "rabbitmq_message_id", nullable = false) // Coluna que referencia RabbitMQMessage
+    private RabbitMQMessage rabbitMQMessage; // Referência à entidade RabbitMQMessage
+
     public Payment() {}
 
     public Payment(Customer customer, PaymentMethodType paymentMethod, BigDecimal amount, String currency, FraudCheck fraudCheck) {
@@ -128,4 +132,12 @@ public final class Payment extends BaseEntity {
 
     @PreUpdate
     public void preUpdate() {}
+
+    public RabbitMQMessage getRabbitMQMessage() {
+        return rabbitMQMessage;
+    }
+
+    public void setRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
+        this.rabbitMQMessage = rabbitMQMessage;
+    }
 }
