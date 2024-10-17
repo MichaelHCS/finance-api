@@ -81,6 +81,7 @@ public class PaymentService {
         TransactionLog transactionLog = new TransactionLog();
         transactionLog.setPayment(savedPayment);
         transactionLog.setAction(TransactionAction.PAYMENT_CREATED);
+        transactionLog.setDetails(PaymentMethodDetailsType.BANK.name());
         transactionLog.setTimestamp(ZonedDateTime.now());
         transactionLogRepository.save(transactionLog);
 
