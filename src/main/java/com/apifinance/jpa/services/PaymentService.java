@@ -19,6 +19,7 @@ import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.TransactionAction;
 import com.apifinance.jpa.enums.rabbitmqMessageStatus;
 import com.apifinance.jpa.exceptions.PaymentNotFoundException;
+import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
 import com.apifinance.jpa.models.PaymentMethod;
 import com.apifinance.jpa.models.RabbitMQMessage;
@@ -40,7 +41,7 @@ public class PaymentService {
     private final RabbitMQMessageRepository rabbitmqMessageRepository;
     private final TransactionLogRepository transactionLogRepository;
     private final FraudCheckService fraudCheckService;
-    private final PaymentMethodRepository paymentMethodRepository; // Adicione este campo
+    private final PaymentMethodRepository paymentMethodRepository;
 
     @Autowired
     public PaymentService(PaymentRepository paymentRepository, 
@@ -88,8 +89,9 @@ public class PaymentService {
         // Envia a mensagem para RabbitMQ
         sendRabbitMQMessage(savedMessage);
 
-        // Processa a análise de fraude
-        fraudCheckService.processFraudCheck(savedPayment.getId(), FraudCheckResult.PENDING, FraudCheckReason.NONE);
+        // Processa a análise de fraude e atualiza o status do pagamento
+        FraudCheck fraudCheck = fraudCheckService.processFraudCheck(savedPayment.getId(), FraudCheckResult.PENDING, FraudCheckReason.NONE);
+        updatePaymentStatusBasedOnFraudCheck(savedPayment, fraudCheck);
 
         PaymentMethod paymentMethod = new PaymentMethod();
         paymentMethod.setType(PaymentMethodType.CREDIT_CARD); // Defina o tipo de pagamento
@@ -99,6 +101,16 @@ public class PaymentService {
         paymentMethodRepository.save(paymentMethod);
 
         return savedPayment;
+    }
+
+    private void updatePaymentStatusBasedOnFraudCheck(Payment payment, FraudCheck fraudCheck) {
+        // Atualiza o status do pagamento de acordo com o resultado da análise de fraude
+        PaymentStatus updatedStatus = fraudCheck.getFraudStatus() == FraudCheckResult.APPROVED ? 
+                                        PaymentStatus.APPROVED : PaymentStatus.REJECTED;
+        payment.setStatus(updatedStatus);
+        paymentRepository.save(payment);
+
+        logger.info("Payment status updated for payment ID: {}. New status: {}", payment.getId(), updatedStatus);
     }
 
     private void sendRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
