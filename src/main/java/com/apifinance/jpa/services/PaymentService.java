@@ -2,6 +2,7 @@ package com.apifinance.jpa.services;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -12,14 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckResult;
+import com.apifinance.jpa.enums.PaymentMethodDetailsType;
+import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
-import com.apifinance.jpa.enums.rabbitmqMessageStatus;
 import com.apifinance.jpa.enums.TransactionAction;
+import com.apifinance.jpa.enums.rabbitmqMessageStatus;
 import com.apifinance.jpa.exceptions.PaymentNotFoundException;
 import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.PaymentMethod;
 import com.apifinance.jpa.models.RabbitMQMessage;
 import com.apifinance.jpa.models.TransactionLog;
 import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
+import com.apifinance.jpa.repositories.PaymentMethodRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
 import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
 import com.apifinance.jpa.repositories.TransactionLogRepository;
@@ -35,18 +40,22 @@ public class PaymentService {
     private final RabbitMQMessageRepository rabbitmqMessageRepository;
     private final TransactionLogRepository transactionLogRepository;
     private final FraudCheckService fraudCheckService;
+    private final PaymentMethodRepository paymentMethodRepository; // Adicione este campo
 
     @Autowired
-    public PaymentService(PaymentRepository paymentRepository, RabbitTemplate rabbitTemplate,
+    public PaymentService(PaymentRepository paymentRepository, 
+                          RabbitTemplate rabbitTemplate,
                           RabbitMQMessageRepository rabbitmqMessageRepository,
                           TransactionLogRepository transactionLogRepository,
-                          FraudCheckService fraudCheckService) {
+                          FraudCheckService fraudCheckService,
+                          PaymentMethodRepository paymentMethodRepository) {
 
         this.paymentRepository = paymentRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.rabbitmqMessageRepository = rabbitmqMessageRepository;
         this.transactionLogRepository = transactionLogRepository;
         this.fraudCheckService = fraudCheckService;
+        this.paymentMethodRepository = paymentMethodRepository;
     }
 
     @Transactional
@@ -80,6 +89,13 @@ public class PaymentService {
 
         // Processa a análise de fraude
         fraudCheckService.processFraudCheck(savedPayment.getId(), FraudCheckResult.PENDING, FraudCheckReason.NONE);
+
+        PaymentMethod paymentMethod = new PaymentMethod();
+        paymentMethod.setType(PaymentMethodType.CREDIT_CARD); // Defina o tipo de pagamento
+        paymentMethod.setDetails(PaymentMethodDetailsType.BANK.name());
+        paymentMethod.addPayment(savedPayment);
+
+        paymentMethodRepository.save(paymentMethod);
 
         return savedPayment;
     }
