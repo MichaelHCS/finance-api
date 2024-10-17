@@ -1,6 +1,7 @@
 package com.apifinance.jpa.models;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,18 +17,18 @@ public abstract class BaseEntity {
     protected Long id;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    protected LocalDateTime createdAt;
+    protected ZonedDateTime createdAt;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    protected LocalDateTime updatedAt;
+    protected ZonedDateTime updatedAt;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    protected LocalDateTime checkedAt;
+    protected ZonedDateTime checkedAt;
 
     public BaseEntity() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        this.checkedAt = LocalDateTime.now();
+        this.createdAt = ZonedDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
+        this.checkedAt = ZonedDateTime.now();
     }
 
     // Getters e Setters
@@ -39,40 +40,40 @@ public abstract class BaseEntity {
         this.id = id;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public LocalDateTime getCheckedAt() {
+    public ZonedDateTime getCheckedAt() {
         return checkedAt;
     }
 
-    public void setCheckedAt(LocalDateTime checkedAt) {
+    public void setCheckedAt(ZonedDateTime checkedAt) {
         this.checkedAt = checkedAt;
     }
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
         this.createdAt = now;
         this.checkedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-        this.checkedAt = LocalDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
+        this.checkedAt = ZonedDateTime.now();
     }
 }

@@ -1,20 +1,15 @@
 package com.apifinance.jpa.models;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
@@ -28,13 +23,13 @@ public final class Payment extends BaseEntity {
     private Customer customer;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false)
     @NotNull
+    @Column(name = "payment_method", nullable = false)
     private PaymentMethodType paymentMethod;
 
     @DecimalMin(value = "0.0", message = "O valor deve ser positivo")
-    @Column(nullable = false)
     @NotNull
+    @Column(nullable = false)
     private BigDecimal amount;
 
     @NotNull
@@ -46,24 +41,31 @@ public final class Payment extends BaseEntity {
     @Column(nullable = false)
     private PaymentStatus status;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fraud_check_id")
-    private FraudCheck fraudCheck;
+    @JoinColumn(name = "rabbitmq_message_id")
+    private RabbitMQMessage rabbitMQMessage;
 
-    @ManyToOne // Define um relacionamento ManyToOne com RabbitMQMessage
-    @JoinColumn(name = "rabbitmq_message_id", nullable = false) // Coluna que referencia RabbitMQMessage
-    private RabbitMQMessage rabbitMQMessage; // Referência à entidade RabbitMQMessage
+    @JsonBackReference
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private final List<FraudCheck> fraudChecks = new ArrayList<>();
 
     public Payment() {}
 
-    public Payment(Customer customer, PaymentMethodType paymentMethod, BigDecimal amount, String currency, FraudCheck fraudCheck) {
+    public Payment(Customer customer, PaymentMethodType paymentMethod, BigDecimal amount, String currency) {
         this.customer = customer;
         this.paymentMethod = paymentMethod;
         this.amount = amount;
         this.currency = currency;
-        this.fraudCheck = fraudCheck;
     }
 
+    // Método para adicionar uma verificação de fraude
+    public void addFraudCheck(FraudCheck fraudCheck) {
+        fraudChecks.add(fraudCheck);
+        fraudCheck.setPayment(this);
+    }
+
+    // Getters e Setters
     public Customer getCustomer() {
         return customer;
     }
@@ -104,12 +106,16 @@ public final class Payment extends BaseEntity {
         this.status = status;
     }
 
-    public FraudCheck getFraudCheck() {
-        return fraudCheck;
+    public List<FraudCheck> getFraudChecks() {
+        return fraudChecks; // Método para acessar a lista de verificações de fraude
     }
 
-    public void setFraudCheck(FraudCheck fraudCheck) {
-        this.fraudCheck = fraudCheck;
+    public RabbitMQMessage getRabbitMQMessage() {
+        return rabbitMQMessage;
+    }
+
+    public void setRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
+        this.rabbitMQMessage = rabbitMQMessage;
     }
 
     @Override
@@ -121,23 +127,17 @@ public final class Payment extends BaseEntity {
                 ", currency='" + currency + '\'' +
                 ", status=" + status +
                 ", paymentMethod=" + paymentMethod +
-                ", fraudCheckId=" + (fraudCheck != null ? fraudCheck.getId() : null) +
+                ", fraudChecksCount=" + fraudChecks.size() + // Adicionando contagem de verificações de fraude
                 '}';
     }
 
     @PrePersist
     public void prePersist() {
-        this.status = PaymentStatus.PENDING;
+        this.status = PaymentStatus.PENDING; // Define o status como PENDING ao persistir
     }
 
     @PreUpdate
-    public void preUpdate() {}
-
-    public RabbitMQMessage getRabbitMQMessage() {
-        return rabbitMQMessage;
-    }
-
-    public void setRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
-        this.rabbitMQMessage = rabbitMQMessage;
+    public void preUpdate() {
+        // Lógica a ser executada antes da atualização (se necessário)
     }
 }

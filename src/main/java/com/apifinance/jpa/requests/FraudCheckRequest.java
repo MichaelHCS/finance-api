@@ -6,16 +6,19 @@ import com.apifinance.jpa.enums.FraudCheckResult;
 import jakarta.validation.constraints.NotNull;
 
 public class FraudCheckRequest {
+
     @NotNull
     private Long paymentId;
-    
-    @NotNull
-    private FraudCheckResult fraudStatus; // Você pode definir o tipo conforme necessário
 
     @NotNull
-    private String checkReason; // Mantenha como String
+    private FraudCheckResult fraudStatus;
 
-    // Getters e setters
+    private FraudCheckReason checkReason; // Isso pode ser opcional
+
+    private Long rabbitmqMessageId;
+
+    // Getters e Setters
+
     public Long getPaymentId() {
         return paymentId;
     }
@@ -32,16 +35,19 @@ public class FraudCheckRequest {
         this.fraudStatus = fraudStatus;
     }
 
-    public String getCheckReason() {
+    public FraudCheckReason getCheckReason() {
         return checkReason;
     }
 
-    public void setCheckReason(String checkReason) {
+    public void setCheckReason(FraudCheckReason checkReason) {
         this.checkReason = checkReason;
     }
 
-    // Método para converter o String em Enum
-    public FraudCheckReason getCheckReasonAsEnum() {
-        return FraudCheckReason.valueOf(checkReason.toUpperCase()); // Converte String para Enum
+    public Long getRabbitmqMessageId() {
+        return rabbitmqMessageId;
+    }
+
+    public void setRabbitmqMessageId(Long rabbitmqMessageId) {
+        this.rabbitmqMessageId = rabbitmqMessageId;
     }
 }

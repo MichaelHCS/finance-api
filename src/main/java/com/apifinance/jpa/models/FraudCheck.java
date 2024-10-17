@@ -1,9 +1,11 @@
 package com.apifinance.jpa.models;
 
+
 import java.time.ZonedDateTime;
 
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckResult;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,6 +27,7 @@ public class FraudCheck extends BaseEntity {
     @NotNull // Validação para garantir que o pagamento não seja nulo
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false) // Referência à tabela Payment
+    @JsonBackReference
     private Payment payment; // Pagamento associado a esta verificação de fraude
 
     @Enumerated(EnumType.STRING)
@@ -36,10 +39,6 @@ public class FraudCheck extends BaseEntity {
     @Column(name = "check_reason") // Tornando-o opcional
     private FraudCheckReason checkReason; // Motivo do resultado da análise de fraude
 
-    @NotNull // Validação para garantir que a data e hora não sejam nulas
-    @Column(name = "fraud_checked_at", nullable = false) // Renomeado para fraud_checked_at
-    private ZonedDateTime fraudCheckedAt; // Data e hora da verificação de fraude
-
     @Column(name = "rabbitmq_message_id") // Atributo rabbitmq_message_id
     private Long rabbitmqMessageId; // ID da mensagem RabbitMQ associada
 
@@ -47,11 +46,11 @@ public class FraudCheck extends BaseEntity {
     public FraudCheck() {}
 
     // Construtor com parâmetros
-    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, ZonedDateTime fraudCheckedAt, Long rabbitmqMessageId) {
+    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, Long rabbitmqMessageId) {
         this.payment = payment;
         this.fraudStatus = fraudStatus;
         this.checkReason = checkReason;
-        this.fraudCheckedAt = fraudCheckedAt;
+        this.checkedAt = ZonedDateTime.now();
         this.rabbitmqMessageId = rabbitmqMessageId;
     }
 
@@ -80,14 +79,6 @@ public class FraudCheck extends BaseEntity {
         this.checkReason = checkReason;
     }
 
-    public ZonedDateTime getFraudCheckedAt() {
-        return fraudCheckedAt;
-    }
-
-    public void setFraudCheckedAt(ZonedDateTime fraudCheckedAt) {
-        this.fraudCheckedAt = fraudCheckedAt;
-    }
-
     public Long getRabbitmqMessageId() {
         return rabbitmqMessageId;
     }
@@ -103,8 +94,9 @@ public class FraudCheck extends BaseEntity {
                 ", paymentId=" + (payment != null ? payment.getId() : null) + 
                 ", fraudStatus=" + fraudStatus +
                 ", checkReason=" + checkReason +
-                ", fraudCheckedAt=" + fraudCheckedAt +
+                ", checkedAt=" + getCheckedAt()+
                 ", rabbitmqMessageId=" + rabbitmqMessageId +
                 '}';
     }
+
 }
