@@ -1,6 +1,7 @@
 package com.apifinance.jpa.enums;
 
 public enum FraudCheckResult {
+    PENDING("Pendente"),
     APPROVED("Aprovado"),
     REJECTED("Rejeitado");
 

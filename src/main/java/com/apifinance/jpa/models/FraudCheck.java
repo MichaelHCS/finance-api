@@ -1,6 +1,5 @@
 package com.apifinance.jpa.models;
 
-
 import java.time.ZonedDateTime;
 
 import com.apifinance.jpa.enums.FraudCheckReason;
@@ -14,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
@@ -94,9 +94,14 @@ public class FraudCheck extends BaseEntity {
                 ", paymentId=" + (payment != null ? payment.getId() : null) + 
                 ", fraudStatus=" + fraudStatus +
                 ", checkReason=" + checkReason +
-                ", checkedAt=" + getCheckedAt()+
+                ", checkedAt=" + getCheckedAt() +
                 ", rabbitmqMessageId=" + rabbitmqMessageId +
                 '}';
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        // Atualiza a data de verificação (ou qualquer outro campo que você precise)
+        this.checkedAt = ZonedDateTime.now();
+    }
 }

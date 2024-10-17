@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.apifinance.jpa.enums.FraudCheckResult;
 import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -49,6 +50,8 @@ public final class Payment extends BaseEntity {
     @JsonBackReference
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private final List<FraudCheck> fraudChecks = new ArrayList<>();
+
+    
 
     public Payment() {}
 
@@ -138,6 +141,17 @@ public final class Payment extends BaseEntity {
 
     @PreUpdate
     public void preUpdate() {
-        // Lógica a ser executada antes da atualização (se necessário)
+        // Se o status de pagamento for PENDING, verificar se existem checagens de fraude
+        if (this.status == PaymentStatus.PENDING) {
+            // Verifique se há checagens de fraude e se todas são aprovadas
+            boolean allApproved = fraudChecks.stream()
+                .allMatch(fraudCheck -> fraudCheck.getFraudStatus() == FraudCheckResult.APPROVED);
+            
+            if (allApproved) {
+                this.status = PaymentStatus.APPROVED; // Altera o status para APPROVED
+            } else {
+                this.status = PaymentStatus.REJECTED; // Ou qualquer lógica para rejeição
+            }
+        }
     }
 }

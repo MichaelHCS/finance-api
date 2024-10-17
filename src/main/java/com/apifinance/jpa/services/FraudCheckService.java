@@ -1,6 +1,7 @@
 package com.apifinance.jpa.services;
 
 import java.time.ZonedDateTime;
+import java.util.Optional; // Certifique-se de que esta importação esteja presente
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,32 +31,50 @@ public class FraudCheckService {
     }
 
     @Transactional
-    public void processFraudCheck(Long paymentId, FraudCheckResult fraudStatus, FraudCheckReason checkReason) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + paymentId));
+public void processFraudCheck(Long paymentId, FraudCheckResult fraudStatus, FraudCheckReason checkReason) {
+    Payment payment = paymentRepository.findById(paymentId)
+            .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + paymentId));
 
-        // Verifica se o pagamento já foi processado
-        if (payment.getStatus() == PaymentStatus.APPROVED || payment.getStatus() == PaymentStatus.REJECTED) {
-            logger.info("Payment with ID {} has already been processed, skipping fraud check.", paymentId);
-            return;
-        }
-
-        // Atualiza o status do pagamento de acordo com o resultado da análise de fraude
-        if (fraudStatus == FraudCheckResult.APPROVED) {
-            payment.setStatus(PaymentStatus.APPROVED);
-        } else if (fraudStatus == FraudCheckResult.REJECTED) {
-            payment.setStatus(PaymentStatus.REJECTED);
-        }
-        paymentRepository.save(payment);
-
-        // Crie um novo registro na tabela fraud_check
-        FraudCheck fraudCheck = new FraudCheck();
-        fraudCheck.setPayment(payment);
-        fraudCheck.setFraudStatus(fraudStatus);
-        fraudCheck.setCheckReason(checkReason);
-        fraudCheck.setCheckedAt(ZonedDateTime.now());
-        fraudCheckRepository.save(fraudCheck);
-
-        logger.info("Fraud check processed for payment ID: {}", paymentId);
+    // Verifica se o pagamento já foi processado
+    if (payment.getStatus() == PaymentStatus.APPROVED || payment.getStatus() == PaymentStatus.REJECTED) {
+        logger.info("Payment with ID {} has already been processed, skipping fraud check.", paymentId);
+        return;
     }
+
+    // Verifica se o fraudStatus é APPROVED ou REJECTED
+    if (fraudStatus == FraudCheckResult.APPROVED || fraudStatus == FraudCheckResult.REJECTED) {
+        // Verifica se já existe um registro de verificação de fraude para este pagamento
+        Optional<FraudCheck> existingFraudCheck = fraudCheckRepository.findByPayment(payment);
+        
+        if (existingFraudCheck.isPresent()) {
+            FraudCheck fraudCheck = existingFraudCheck.get();
+            // Atualiza o registro existente
+            fraudCheck.setFraudStatus(fraudStatus);
+            fraudCheck.setCheckReason(checkReason);
+            fraudCheck.setCheckedAt(ZonedDateTime.now());
+            fraudCheckRepository.save(fraudCheck);
+
+            // Atualiza o status do pagamento de acordo com o resultado da análise de fraude
+            payment.setStatus(fraudStatus == FraudCheckResult.APPROVED ? PaymentStatus.APPROVED : PaymentStatus.REJECTED);
+            paymentRepository.save(payment);
+            logger.info("Fraud check updated for payment ID: {}", paymentId);
+        } else {
+            // Se não existe um registro, cria um novo
+            FraudCheck fraudCheck = new FraudCheck();
+            fraudCheck.setPayment(payment);
+            fraudCheck.setFraudStatus(fraudStatus);
+            fraudCheck.setCheckReason(checkReason);
+            fraudCheck.setCheckedAt(ZonedDateTime.now());
+            fraudCheckRepository.save(fraudCheck);
+
+            // Atualiza o status do pagamento de acordo com o resultado da análise de fraude
+            payment.setStatus(fraudStatus == FraudCheckResult.APPROVED ? PaymentStatus.APPROVED : PaymentStatus.REJECTED);
+            paymentRepository.save(payment);
+            logger.info("Fraud check created for payment ID: {}", paymentId);
+        }
+    } else {
+        logger.warn("Fraud check result is neither APPROVED nor REJECTED for payment ID: {}", paymentId);
+    }
+    }
+
 }
