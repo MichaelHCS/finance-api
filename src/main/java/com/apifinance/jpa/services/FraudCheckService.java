@@ -45,12 +45,20 @@ public class FraudCheckService {
         fraudCheck.setRabbitmqMessageId(request.getRabbitmqMessageId());
         fraudCheck.setCheckedAt(ZonedDateTime.now());
 
+        
+
+        // Atualiza o campo fraud_check_id no pagamento
+        payment.setFraudCheck(fraudCheck);
+        paymentRepository.save(payment);  // Salva o pagamento com o campo atualizado
+
         // Atualiza o status do pagamento
         updatePaymentStatus(payment, request.getFraudStatus(), request.getCheckReason());
 
         logger.info("Creating fraud check for payment ID: {}", request.getPaymentId());
 
         return fraudCheckRepository.save(fraudCheck);
+
+
     }
 
     @Transactional

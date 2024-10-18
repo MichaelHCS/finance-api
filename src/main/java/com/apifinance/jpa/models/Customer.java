@@ -66,4 +66,14 @@ public class Customer extends BaseEntity {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+            "id=" + getId() + // Considerando que BaseEntity tem um método getId()
+            ",name='" + name + '\'' +
+            ",email='" + email + '\'' +
+            ",phoneNumber='" + phoneNumber + '\'' +
+            '}';
+    }
 }

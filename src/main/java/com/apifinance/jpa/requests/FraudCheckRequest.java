@@ -15,6 +15,8 @@ public class FraudCheckRequest {
 
     private FraudCheckReason checkReason; 
 
+    private long fraudCheck;
+    
     private Long rabbitmqMessageId;
 
     // Getters e Setters
@@ -49,5 +51,13 @@ public class FraudCheckRequest {
 
     public void setRabbitmqMessageId(Long rabbitmqMessageId) {
         this.rabbitmqMessageId = rabbitmqMessageId;
+    }
+
+    public long getFraudCheck() {
+        return fraudCheck;
+    }
+
+    public void setFraudCheck(long fraudCheck) {
+        this.fraudCheck = fraudCheck;
     }
 }

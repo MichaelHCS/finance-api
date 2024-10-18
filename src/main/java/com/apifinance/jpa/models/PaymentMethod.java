@@ -82,8 +82,8 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     public String toString() {
         return "PaymentMethod{" +
                 "id=" + getId() + // Utiliza o getId() da BaseEntity
-                ", type=" + type +
-                ", details='" + details + '\'' +
+                ",type=" + type +
+                ",details='" + details + '\'' +
                 '}';
     }
 

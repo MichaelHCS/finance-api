@@ -1,15 +1,15 @@
 package com.apifinance.jpa.models;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
 
 import com.apifinance.jpa.enums.PaymentMethodType;
 import com.apifinance.jpa.enums.PaymentStatus;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+//import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
+//import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,7 +17,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+//import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.DecimalMin;
@@ -58,12 +58,12 @@ public final class Payment extends BaseEntity {
     private RabbitMQMessage rabbitMQMessage;
 
     @ManyToOne // ou @OneToOne, dependendo do seu caso
-    @JoinColumn(name = "fraud_check_id", referencedColumnName = "id") // Nome da coluna que será referenciada
+    @JoinColumn(name = "fraud_check_id",  nullable = true) // Nome da coluna que será referenciada
     private FraudCheck fraudCheck;
 
-    @JsonBackReference
-    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private final List<FraudCheck> fraudChecks = new ArrayList<>();
+    //@JsonBackReference
+    //@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private final List<FraudCheck> fraudChecks = new ArrayList<>();
 
     @Transient
     @Column(name = "check_reason") // Novo campo para armazenar a razão da verificação de fraude
@@ -79,10 +79,10 @@ public final class Payment extends BaseEntity {
     }
 
     // Método para adicionar uma verificação de fraude
-    public void addFraudCheck(FraudCheck fraudCheck) {
-        fraudChecks.add(fraudCheck);
-        fraudCheck.setPayment(this);
-    }
+    //public void addFraudCheck(FraudCheck fraudCheck) {
+       // fraudChecks.add(fraudCheck);
+      //  fraudCheck.setPayment(this);
+    //}
 
     // Getters e Setters
     public Customer getCustomer() {
@@ -125,10 +125,6 @@ public final class Payment extends BaseEntity {
         this.status = status;
     }
 
-    public List<FraudCheck> getFraudChecks() {
-        return fraudChecks; // Método para acessar a lista de verificações de fraude
-    }
-
     public RabbitMQMessage getRabbitMQMessage() {
         return rabbitMQMessage;
     }
@@ -147,7 +143,7 @@ public final class Payment extends BaseEntity {
 
 
     public FraudCheck getFraudCheck() {
-        return fraudCheck;
+       return fraudCheck;
     }
 
     public void setFraudCheck(FraudCheck fraudCheck) {
@@ -164,7 +160,8 @@ public final class Payment extends BaseEntity {
                 ", currency='" + currency + '\'' +
                 ", status=" + status +
                 ", paymentMethod=" + paymentMethod +
-                ", fraudChecksCount=" + fraudChecks.size() + // Adicionando contagem de verificações de fraude
+                ", fraudCheckId=" + fraudCheck +
+                //", fraudChecksCount=" + fraudChecks.size() + // Adicionando contagem de verificações de fraude
                 '}';
    
     }   
