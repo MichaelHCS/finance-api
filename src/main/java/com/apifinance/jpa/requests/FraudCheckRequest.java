@@ -13,7 +13,7 @@ public class FraudCheckRequest {
     @NotNull
     private FraudCheckResult fraudStatus;
 
-    private FraudCheckReason checkReason; // Isso pode ser opcional
+    private FraudCheckReason checkReason; 
 
     private Long rabbitmqMessageId;
 

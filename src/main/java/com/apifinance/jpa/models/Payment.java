@@ -18,8 +18,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
@@ -51,16 +51,23 @@ public final class Payment extends BaseEntity {
     @Column(nullable = false)
     private PaymentStatus status;
 
+    @Transient
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rabbitmq_message_id")
     private RabbitMQMessage rabbitMQMessage;
 
+    @ManyToOne // ou @OneToOne, dependendo do seu caso
+    @JoinColumn(name = "fraud_check_id", referencedColumnName = "id") // Nome da coluna que será referenciada
+    private FraudCheck fraudCheck;
+
     @JsonBackReference
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private final List<FraudCheck> fraudChecks = new ArrayList<>();
 
-    
+    @Transient
+    @Column(name = "check_reason") // Novo campo para armazenar a razão da verificação de fraude
+    private String checkReason;
 
     public Payment() {}
 
@@ -130,6 +137,24 @@ public final class Payment extends BaseEntity {
         this.rabbitMQMessage = rabbitMQMessage;
     }
 
+    public String getCheckReason() {
+        return checkReason;
+    }
+
+    public void setCheckReason(String checkReason) {
+        this.checkReason = checkReason;
+    }
+
+
+    public FraudCheck getFraudCheck() {
+        return fraudCheck;
+    }
+
+    public void setFraudCheck(FraudCheck fraudCheck) {
+        this.fraudCheck = fraudCheck;
+    }
+
+
     @Override
     public String toString() {
         return "Payment{" +
@@ -141,10 +166,7 @@ public final class Payment extends BaseEntity {
                 ", paymentMethod=" + paymentMethod +
                 ", fraudChecksCount=" + fraudChecks.size() + // Adicionando contagem de verificações de fraude
                 '}';
-    }
+   
+    }   
 
-    @PrePersist
-    public void prePersist() {
-        this.status = PaymentStatus.PENDING; // Define o status como PENDING ao persistir
-    }
 }
