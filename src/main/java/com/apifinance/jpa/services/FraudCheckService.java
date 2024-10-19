@@ -36,9 +36,9 @@ public class FraudCheckService {
     }
 
     @Transactional
-    public FraudCheck createFraudCheck(FraudCheckRequest request) {
+    public FraudCheck createFraudCheck(Long paymentId, FraudCheckRequest request) {
         // Busca o pagamento correspondente ao ID fornecido
-        Payment payment = paymentRepository.findById(request.getPaymentId())
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + request.getPaymentId()));
 
         RabbitMQMessage rabbitmqMessage = rabbitMQMessageRepository.findById(request.getRabbitmqMessage())
@@ -58,7 +58,7 @@ public class FraudCheckService {
         // Atualiza o status do pagamento
         updatePaymentStatus(payment, request.getFraudStatus(), request.getCheckReason());
 
-        logger.info("Creating fraud check for payment ID: {}", request.getPaymentId());
+        //logger.info("Creating fraud check for payment ID: {}", request.getPaymentId());
 
         return fraudCheckRepository.save(fraudCheck);
     }
