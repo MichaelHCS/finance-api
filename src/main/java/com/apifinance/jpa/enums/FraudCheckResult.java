@@ -5,13 +5,13 @@ public enum FraudCheckResult {
     APPROVED("Aprovado"),
     REJECTED("Rejeitado");
 
-    private final String detail; // Detalhe sobre o resultado da verificação de fraude
+    private final String description; // Detalhe sobre o resultado da verificação de fraude
 
-    FraudCheckResult(String detail) {
-        this.detail = detail;
+    FraudCheckResult(String description) {
+        this.description = description;
     }
 
-    public String getDetail() {
-        return detail;
+    public String getDescription() {
+        return description;
     }
 }

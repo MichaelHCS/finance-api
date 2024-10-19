@@ -5,15 +5,15 @@ public enum PaymentStatus {
     APPROVED("Pagamento aprovado"),
     REJECTED("Pagamento rejeitado");
 
-    private final String detail; // Detalhe sobre o status
+    private final String description ;// Detalhe sobre o status
 
     // Construtor da enumeração
-    PaymentStatus(String detail) {
-        this.detail = detail;
+    PaymentStatus(String description) {
+        this.description = description;
     }
 
     // Método para obter o detalhe do status
     public String getDetail() {
-        return detail;
+        return description;
     }
 }

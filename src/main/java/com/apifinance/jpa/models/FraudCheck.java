@@ -13,7 +13,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-//import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
@@ -39,19 +38,20 @@ public class FraudCheck extends BaseEntity {
     @Column(name = "check_reason") // Tornando-o opcional
     private FraudCheckReason checkReason; // Motivo do resultado da análise de fraude
 
-    @Column(name = "rabbitmq_message_id") // Atributo rabbitmq_message_id
-    private Long rabbitmqMessageId; // ID da mensagem RabbitMQ associada
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rabbitmq_message_id", nullable = false) // Atributo rabbitmq_message_id
+    private RabbitMQMessage rabbitmqMessage; // ID da mensagem RabbitMQ associada
 
     // Construtor padrão
     public FraudCheck() {}
 
     // Construtor com parâmetros
-    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, Long rabbitmqMessageId) {
+    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, RabbitMQMessage rabbitmqMessage) {
         this.payment = payment;
         this.fraudStatus = fraudStatus;
         this.checkReason = checkReason;
         this.checkedAt = ZonedDateTime.now();
-        this.rabbitmqMessageId = rabbitmqMessageId;
+        this.rabbitmqMessage = rabbitmqMessage;
     }
 
     // Getters e Setters
@@ -79,12 +79,12 @@ public class FraudCheck extends BaseEntity {
         this.checkReason = checkReason;
     }
 
-    public Long getRabbitmqMessageId() {
-        return rabbitmqMessageId;
+    public RabbitMQMessage getRabbitmqMessage() {
+        return rabbitmqMessage;
     }
 
-    public void setRabbitmqMessageId(Long rabbitmqMessageId) {
-        this.rabbitmqMessageId = rabbitmqMessageId;
+    public void setRabbitmqMessage(RabbitMQMessage rabbitmqMessage) {
+        this.rabbitmqMessage = rabbitmqMessage;
     }
 
     @Override
@@ -95,15 +95,15 @@ public class FraudCheck extends BaseEntity {
                 ", fraudStatus=" + fraudStatus +
                 ", checkReason=" + checkReason +
                 ", checkedAt=" + getCheckedAt() +
-                ", rabbitmqMessageId=" + rabbitmqMessageId +
+                ", rabbitmqMessageId=" + (rabbitmqMessage != null ? rabbitmqMessage.getId() : null) +
             
                 '}';
     }
 
-    /*@PreUpdate
-    public void preUpdate() {
+  //  @PreUpdate
+    //public void preUpdate() {
         // Atualiza a data de verificação (ou qualquer outro campo que você precise)
-        this.checkedAt = ZonedDateTime.now();
-    }
-        */
+      //  this.checkedAt = ZonedDateTime.now();
+    //}
+        
 }

@@ -14,8 +14,10 @@ import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.exceptions.PaymentNotFoundException;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.RabbitMQMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
+import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
 import com.apifinance.jpa.requests.FraudCheckRequest; // Certifique-se de importar a classe correta
 
 @Service
@@ -25,10 +27,12 @@ public class FraudCheckService {
 
     private final PaymentRepository paymentRepository;
     private final FraudCheckRepository fraudCheckRepository;
+    private final RabbitMQMessageRepository rabbitMQMessageRepository;
 
-    public FraudCheckService(PaymentRepository paymentRepository, FraudCheckRepository fraudCheckRepository) {
+    public FraudCheckService(PaymentRepository paymentRepository, FraudCheckRepository fraudCheckRepository, RabbitMQMessageRepository rabbitMQMessageRepository) {
         this.paymentRepository = paymentRepository;
         this.fraudCheckRepository = fraudCheckRepository;
+        this.rabbitMQMessageRepository = rabbitMQMessageRepository;
     }
 
     @Transactional
@@ -37,19 +41,19 @@ public class FraudCheckService {
         Payment payment = paymentRepository.findById(request.getPaymentId())
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + request.getPaymentId()));
 
+        RabbitMQMessage rabbitmqMessage = rabbitMQMessageRepository.findById(request.getRabbitmqMessage())
+                .orElseThrow(() -> new RuntimeException("RabbitMQ Message not found"));
+
         // Cria uma nova verificação de fraude
         FraudCheck fraudCheck = new FraudCheck();
         fraudCheck.setPayment(payment);
         fraudCheck.setFraudStatus(request.getFraudStatus());
         fraudCheck.setCheckReason(request.getCheckReason());
-        fraudCheck.setRabbitmqMessageId(request.getRabbitmqMessageId());
+        fraudCheck.setRabbitmqMessage(rabbitmqMessage);
         fraudCheck.setCheckedAt(ZonedDateTime.now());
-
-        
 
         // Atualiza o campo fraud_check_id no pagamento
         payment.setFraudCheck(fraudCheck);
-        paymentRepository.save(payment);  // Salva o pagamento com o campo atualizado
 
         // Atualiza o status do pagamento
         updatePaymentStatus(payment, request.getFraudStatus(), request.getCheckReason());
@@ -57,8 +61,6 @@ public class FraudCheckService {
         logger.info("Creating fraud check for payment ID: {}", request.getPaymentId());
 
         return fraudCheckRepository.save(fraudCheck);
-
-
     }
 
     @Transactional
