@@ -12,7 +12,7 @@ public enum FraudCheckReason {
     FraudCheckReason(String description) {
         this.description = description;
     }
-
+    
     public String getDescription() {
         return description;
     }

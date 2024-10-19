@@ -12,32 +12,28 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-
-/**
- * Classe que representa um log de transação.
- */
+ 
 @Entity
 @Table(name = "transaction_log")
 public class TransactionLog extends BaseEntity {
 
     @ManyToOne
-    @JoinColumn(name = "payment_id", nullable = false) // Chave estrangeira para Payment
+    @JoinColumn(name = "payment_id", nullable = false) 
     @NotNull
-    private Payment payment; // Referência ao pagamento associado
+    private Payment payment; 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
     @NotNull
-    private TransactionAction action; // Ação realizada na transação
+    private TransactionAction action; 
 
     @Column(name = "timestamp", nullable = false)
     @NotNull
-    private ZonedDateTime timestamp; // Data e hora da ação
+    private ZonedDateTime timestamp; 
 
-    @Column(name = "details") // Detalhes adicionais sobre a ação
+    @Column(name = "details") 
     private String details;
 
-    // Construtor padrão
     public TransactionLog() {}
 
     // Construtor com parâmetros

@@ -83,9 +83,7 @@ public class PaymentService {
 
         // Envia a mensagem para RabbitMQ
         sendRabbitMQMessage(savedMessage);
-
-    
-
+        
         PaymentMethod paymentMethod = new PaymentMethod();
         paymentMethod.setType(PaymentMethodType.CREDIT_CARD); // Defina o tipo de pagamento
         paymentMethod.setDetails(PaymentMethodDetailsType.BANK.name());

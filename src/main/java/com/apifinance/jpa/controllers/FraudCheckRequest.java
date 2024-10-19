@@ -6,13 +6,14 @@ import com.apifinance.jpa.enums.FraudCheckResult;
 import jakarta.validation.constraints.NotNull;
 
 public class FraudCheckRequest {
+
     @NotNull
-    private Long paymentId; // ID do pagamento analisado
+    private Long paymentId; 
     
     @NotNull
-    private FraudCheckResult fraudStatus; // Status pode ser "APPROVED" ou "REJECTED"
+    private FraudCheckResult fraudStatus; 
     
-    private FraudCheckReason checkReason; // Motivo da rejeição (opcional)
+    private FraudCheckReason checkReason; 
 
     // Getters e Setters
     public Long getPaymentId() {

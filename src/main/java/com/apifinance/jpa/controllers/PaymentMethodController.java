@@ -18,7 +18,7 @@ import com.apifinance.jpa.models.PaymentMethod;
 import com.apifinance.jpa.repositories.PaymentMethodRepository;
 
 @RestController
-@RequestMapping("/payment_method")
+@RequestMapping("/payment-method")
 public class PaymentMethodController {
 
     @Autowired

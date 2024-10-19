@@ -29,13 +29,14 @@ public class FraudCheckController {
     @Autowired
     private FraudCheckRepository fraudCheckRepository;
 
-    // Criar uma nova verificação de fraude
+    // Nova verificação de fraude
     @PostMapping    
     public ResponseEntity<FraudCheck> createFraudCheck(@Valid @RequestBody FraudCheckRequest request) {
-    // Aqui você precisa obter o ID do pagamento do request, se ele estiver disponível
+
+    // obter o ID do pagamento do request, se estiver disponível
     Long paymentId = request.getPaymentId(); // Supondo que você tenha esse método em FraudCheckRequest
 
-    // Chame o método com o ID do pagamento e o objeto request
+    // Chamar o método com o ID do pagamento e o objeto request
     FraudCheck createdFraudCheck = fraudCheckService.createFraudCheck(paymentId, request);
     return ResponseEntity.status(201).body(createdFraudCheck);
 }

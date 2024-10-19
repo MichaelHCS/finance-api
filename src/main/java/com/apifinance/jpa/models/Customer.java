@@ -7,9 +7,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * Classe que representa um cliente.
- */
 @Entity
 @Table(name = "customer")
 public class Customer extends BaseEntity {
@@ -17,32 +14,27 @@ public class Customer extends BaseEntity {
     @Column(nullable = false)
     @NotBlank // Validação para garantir que o nome não seja vazio
     @Size(min = 1, max = 100) // Validação de tamanho para o nome
-    private String name; // Nome do cliente
+    private String name; 
 
     @Column(nullable = false, unique = true)
-    @NotBlank // Validação para garantir que o email não seja vazio
-    @Email // Validação para garantir que o email seja válido
-    private String email; // Email do cliente
+    @NotBlank 
+    @Email 
+    private String email; 
 
     @Column(name = "phone_number", nullable = false)
-    @NotBlank // Validação para garantir que o número de telefone não seja vazio
-    @Size(min = 10, max = 15) // Validação de tamanho para o número de telefone
-    private String phoneNumber; // Número de telefone
+    @NotBlank 
+    @Size(min = 10, max = 15) 
+    private String phoneNumber; 
 
-    
-    // Construtor padrão
-    public Customer() {
-        // O createdAt e updatedAt são gerenciados na classe BaseEntity
-    }
-
-    // Construtor com parâmetros
+    public Customer() {}
+        
     public Customer(String name, String email, String phoneNumber) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
 
-    // Getters e Setters
+    
     public String getName() {
         return name;
     }
@@ -70,7 +62,7 @@ public class Customer extends BaseEntity {
     @Override
     public String toString() {
         return "Customer{" +
-            "id=" + getId() + // Considerando que BaseEntity tem um método getId()
+            "id=" + getId() + 
             ",name='" + name + '\'' +
             ",email='" + email + '\'' +
             ",phoneNumber='" + phoneNumber + '\'' +

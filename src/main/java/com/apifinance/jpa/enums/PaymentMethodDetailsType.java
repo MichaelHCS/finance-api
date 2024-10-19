@@ -9,7 +9,7 @@ public enum PaymentMethodDetailsType {
     PaymentMethodDetailsType(String description) {
         this.description = description;
     }
-
+    
     public String getDescription() {
         return description;
     }

@@ -18,7 +18,7 @@ import com.apifinance.jpa.models.RabbitMQMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
 import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
-import com.apifinance.jpa.requests.FraudCheckRequest; // Certifique-se de importar a classe correta
+import com.apifinance.jpa.requests.FraudCheckRequest; 
 
 @Service
 public class FraudCheckService {
@@ -39,7 +39,7 @@ public class FraudCheckService {
     public FraudCheck createFraudCheck(Long paymentId, FraudCheckRequest request) {
         // Busca o pagamento correspondente ao ID fornecido
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + request.getPaymentId()));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id "  + request.getPaymentId()));
 
         RabbitMQMessage rabbitmqMessage = rabbitMQMessageRepository.findById(request.getRabbitmqMessage())
                 .orElseThrow(() -> new RuntimeException("RabbitMQ Message not found"));
@@ -57,9 +57,6 @@ public class FraudCheckService {
 
         // Atualiza o status do pagamento
         updatePaymentStatus(payment, request.getFraudStatus(), request.getCheckReason());
-
-        //logger.info("Creating fraud check for payment ID: {}", request.getPaymentId());
-
         return fraudCheckRepository.save(fraudCheck);
     }
 
@@ -88,7 +85,7 @@ public class FraudCheckService {
 
     @Transactional
     public FraudCheck updateFraudCheck(Long fraudCheckId, Long paymentId, FraudCheckResult fraudStatus, FraudCheckReason checkReason) {
-        // Busca a verificação de fraude correspondente
+        
         FraudCheck fraudCheck = fraudCheckRepository.findById(fraudCheckId)
                 .orElseThrow(() -> new PaymentNotFoundException("FraudCheck not found with id " + fraudCheckId));
 
@@ -109,7 +106,7 @@ public class FraudCheckService {
         return fraudCheckRepository.save(fraudCheck);
     }
 
-    // Método auxiliar para atualizar o status do pagamento
+    // Atualiza o status do pagamento
     private void updatePaymentStatus(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason) {
         Map<FraudCheckResult, PaymentStatus> statusMap = Map.of(
             FraudCheckResult.APPROVED, PaymentStatus.APPROVED,
@@ -118,13 +115,13 @@ public class FraudCheckService {
     
         payment.setStatus(statusMap.getOrDefault(fraudStatus, PaymentStatus.PENDING));
     
-        // Armazena o motivo como uma String
+        // Armazena o motivo 
         if (fraudStatus == FraudCheckResult.APPROVED || fraudStatus == FraudCheckResult.REJECTED) {
             payment.setCheckReason(checkReason.getDescription());
         } else {
-            payment.setCheckReason(null); // Ou algum valor padrão
+            payment.setCheckReason(null); 
         }
     
-        paymentRepository.save(payment); // Salva as alterações no pagamento
+        paymentRepository.save(payment); 
     }
 }

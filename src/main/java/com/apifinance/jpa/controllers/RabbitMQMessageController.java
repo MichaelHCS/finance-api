@@ -20,7 +20,7 @@ import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
 import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
 
 @RestController
-@RequestMapping("/rabbitmq_message")
+@RequestMapping("/rabbitmq-message")
 public class RabbitMQMessageController {
 
     @Autowired
@@ -36,7 +36,7 @@ public class RabbitMQMessageController {
             return ResponseEntity.badRequest().build();
         }
         
-        // Salvar a mensagem no banco de dados
+        // Salvar mensagem no banco 
         RabbitMQMessage createdMessage = rabbitMQMessageRepository.save(message);
 
         // Enviar a mensagem para a fila RabbitMQ
@@ -45,7 +45,7 @@ public class RabbitMQMessageController {
         return ResponseEntity.status(201).body(createdMessage);
     }
 
-    // Obter todas as mensagens RabbitMQ
+    // Obter mensagens RabbitMQ
     @GetMapping
     public ResponseEntity<List<RabbitMQMessage>> getAllMessages() {
         List<RabbitMQMessage> messages = rabbitMQMessageRepository.findAll();
@@ -81,6 +81,6 @@ public class RabbitMQMessageController {
             return ResponseEntity.notFound().build();
         }
         rabbitMQMessageRepository.deleteById(id);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build(); 
     }
 }

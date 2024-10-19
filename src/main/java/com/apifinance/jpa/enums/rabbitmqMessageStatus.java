@@ -2,10 +2,10 @@ package com.apifinance.jpa.enums;
 
 public enum rabbitmqMessageStatus {
     
-    PENDING("Aguardando envio"),   // Mensagem foi criada e está aguardando envio/processamento
-    SENT("Enviado"),               // Mensagem foi enviada
-    PROCESSED("Processado"),       // Mensagem foi processada
-    ERROR("Erro");                 // Ocorreu um erro ao processar a mensagem
+    PENDING("Aguardando envio"),   
+    SENT("Enviado"),               
+    PROCESSED("Processado"),       
+    ERROR("Erro");                 
 
     private final String description;
 

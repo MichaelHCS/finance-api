@@ -1,10 +1,10 @@
 package com.apifinance.jpa.enums;
 
 public enum TransactionAction {
-    PAYMENT_CREATED("Pagamento criado"),      // Ação de criação de pagamento
-    FRAUD_DETECTED("Fraude detectada"),       // Ação de detecção de fraude
-    PAYMENT_APPROVED("Pagamento aprovado"),   // Ação de aprovação do pagamento
-    PAYMENT_REJECTED("Pagamento rejeitado");  // Ação de rejeição do pagamento
+    PAYMENT_CREATED("Pagamento criado"),     
+    FRAUD_DETECTED("Fraude detectada");      
+    //PAYMENT_APPROVED("Pagamento aprovado"),   
+    //PAYMENT_REJECTED("Pagamento rejeitado");  
 
     private final String description;
 

@@ -5,7 +5,7 @@ public enum FraudCheckResult {
     APPROVED("Aprovado"),
     REJECTED("Rejeitado");
 
-    private final String description; // Detalhe sobre o resultado da verificação de fraude
+    private final String description; 
 
     FraudCheckResult(String description) {
         this.description = description;

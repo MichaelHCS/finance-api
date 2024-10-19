@@ -31,7 +31,7 @@ public class CustomerController {
             return ResponseEntity.badRequest().build(); // 400 Bad Request
         }
         Customer createdCustomer = customerRepository.save(customer); 
-        return ResponseEntity.status(201).body(createdCustomer); // 201 Created
+        return ResponseEntity.status(201).body(createdCustomer); 
     }
 
     // Obter todos os clientes
@@ -46,7 +46,7 @@ public class CustomerController {
     public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
         Optional<Customer> customer = customerRepository.findById(id);
         if (customer.isPresent()) {
-            return ResponseEntity.ok(customer.get()); // 200 OK
+            return ResponseEntity.ok(customer.get()); 
         } else {
             return ResponseEntity.notFound().build(); // 404 Not Found
         }
@@ -56,7 +56,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
         if (!customerRepository.existsById(id)) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.notFound().build(); 
         }
         customer.setId(id); // Definir ID do cliente a ser atualizado
         Customer updatedCustomer = customerRepository.save(customer);

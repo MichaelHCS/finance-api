@@ -25,7 +25,6 @@ public class RabbitConfig {
         return new Queue(QUEUE_NAME, true); // 'true' indica que a fila será durável
     }
 
-    // Definir exchange
     @Bean
     public Exchange exchange() {
         return new TopicExchange(EXCHANGE_NAME);
@@ -46,7 +45,7 @@ public class RabbitConfig {
         return rabbitTemplate;
     }
 
-    // Definir fábrica de contêineres com prefetch count
+    // contêineres com prefetch count
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
@@ -58,8 +57,8 @@ public class RabbitConfig {
         factory.setPrefetchCount(10); 
         
         // Outras configurações opcionais
-        factory.setConcurrentConsumers(1); // Número de consumidores simultâneos
-        factory.setMaxConcurrentConsumers(5); // Máximo de consumidores simultâneos
+        factory.setConcurrentConsumers(1); // consumidores simultâneos
+        factory.setMaxConcurrentConsumers(5); // consumidores simultâneos
         return factory;
     }
 }

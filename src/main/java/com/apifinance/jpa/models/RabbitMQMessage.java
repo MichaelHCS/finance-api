@@ -1,9 +1,7 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
-
-import com.apifinance.jpa.enums.rabbitmqMessageStatus; // Corrigido para convenção de nomenclatura
-
+import com.apifinance.jpa.enums.rabbitmqMessageStatus; 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,40 +9,34 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * Classe que representa uma mensagem no RabbitMQ.
- */
 @Entity
 @Table(name = "rabbitmq_message")
 public class RabbitMQMessage extends BaseEntity {
 
     @Column(name = "message_content", nullable = false)
     @NotNull
-    private String messageContent; // Conteúdo da mensagem
+    private String messageContent; 
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NotNull
-    private rabbitmqMessageStatus status; // Status da mensagem
+    private rabbitmqMessageStatus status; 
 
     @Column(name = "sent_at", nullable = false)
     @NotNull
-    private ZonedDateTime sentAt; // Data e hora de envio da mensagem
+    private ZonedDateTime sentAt; 
 
-    @Column(name = "processed_at") // Data e hora de processamento da mensagem
-    private ZonedDateTime processedAt; // Pode ser nulo se não processado ainda
+    @Column(name = "processed_at") 
+    private ZonedDateTime processedAt; 
 
-    // Construtor padrão
     public RabbitMQMessage() {}
 
-    // Construtor com parâmetros
     public RabbitMQMessage(String messageContent, rabbitmqMessageStatus status, ZonedDateTime sentAt) {
         this.messageContent = messageContent;
         this.status = status;
         this.sentAt = sentAt;
     }
 
-    // Getters e Setters
     public String getMessageContent() {
         return messageContent;
     }
@@ -77,11 +69,10 @@ public class RabbitMQMessage extends BaseEntity {
         this.processedAt = processedAt;
     }
 
-    // Override toString
     @Override
     public String toString() {
         return "RabbitMQMessage{" +
-                "id=" + getId() + // Utiliza o getId() da BaseEntity
+                "id=" + getId() + 
                 ", messageContent='" + messageContent + '\'' +
                 ", status=" + status +
                 ", sentAt=" + sentAt +

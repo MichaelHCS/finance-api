@@ -15,38 +15,34 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * Classe que representa um método de pagamento associado a um pagamento.
- */
 @Entity
 @Table(name = "payment_method")
-public class PaymentMethod extends BaseEntity { // Extende BaseEntity
+public class PaymentMethod extends BaseEntity { 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     @NotNull
-    private PaymentMethodType type; // Tipo de pagamento
+    private PaymentMethodType type; 
 
     @Column(name = "details", nullable = false)
     @NotNull
     @Size(min = 1, max = 255)
-    private String details; // Detalhes do pagamento
+    private String details; 
 
     @OneToMany(mappedBy = "paymentMethod", fetch = FetchType.LAZY)
-    private List<Payment> payments = new ArrayList<>(); // Inicializa a lista de pagamentos
+    private List<Payment> payments = new ArrayList<>(); 
 
-    // Construtor padrão
+    
     public PaymentMethod() {
-        // Necessário para o JPA
+        
     }
 
-    // Construtor com parâmetros
+    
     public PaymentMethod(PaymentMethodType type, String details) {
         this.type = type;
         this.details = details;
     }
 
-    // Getters e Setters
     public PaymentMethodType getType() {
         return type;
     }
@@ -54,7 +50,6 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
     public void setType(PaymentMethodType type) {
         this.type = type;
     }
-
 
     public String getDetails() {
         return details;
@@ -74,14 +69,13 @@ public class PaymentMethod extends BaseEntity { // Extende BaseEntity
 
     public void addPayment(Payment payment) {
         payments.add(payment);
-        payment.setPaymentMethod(type);// Define o PaymentMethod no Payment
+        payment.setPaymentMethod(type);
     }
 
-    // Override toString
     @Override
     public String toString() {
         return "PaymentMethod{" +
-                "id=" + getId() + // Utiliza o getId() da BaseEntity
+                "id=" + getId() + 
                 ",type=" + type +
                 ",details='" + details + '\'' +
                 '}';

@@ -26,16 +26,17 @@ public class RabbitmqMessageConsumer implements ChannelAwareMessageListener {
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
-        // Converter o corpo da mensagem em String
+        
         String messageContent = new String(message.getBody());
 
         // Verificar se a mensagem está vazia ou apenas espaços em branco
         if (messageContent.trim().isEmpty()) {
             logger.error("Mensagem vazia recebida");
-            return; // Se a mensagem estiver vazia, sai do método
+            return; 
         }
 
         try {
+            
             // Aguardar 30 segundos antes de processar a mensagem
             Thread.sleep(30000); // 30 segundos em milissegundos
 
