@@ -2,139 +2,100 @@ package com.apifinance.jpa.services;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.AmqpException;
+import java.util.Optional;
+import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.RabbitMqMessage;
+import com.apifinance.jpa.models.TransactionLog;
+import com.apifinance.jpa.repositories.PaymentRepository;
+import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
+import com.apifinance.jpa.repositories.TransactionLogRepository;
+import com.apifinance.jpa.enums.PaymentStatus;
+import com.apifinance.jpa.enums.RabbitMqMessageStatus;
+import com.apifinance.jpa.enums.TransactionAction;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.apifinance.jpa.enums.PaymentMethodDetailsType;
-import com.apifinance.jpa.enums.PaymentMethodType;
-import com.apifinance.jpa.enums.PaymentStatus;
-import com.apifinance.jpa.enums.TransactionAction;
-import com.apifinance.jpa.enums.rabbitmqMessageStatus;
-import com.apifinance.jpa.exceptions.PaymentNotFoundException;
-
-import com.apifinance.jpa.models.Payment;
-import com.apifinance.jpa.models.PaymentMethod;
-import com.apifinance.jpa.models.RabbitMQMessage;
-import com.apifinance.jpa.models.TransactionLog;
-import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
-import com.apifinance.jpa.repositories.PaymentMethodRepository;
-import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
-import com.apifinance.jpa.repositories.TransactionLogRepository;
-
+import com.apifinance.jpa.rabbitmqconfig.RabbitConfig;
 
 @Service
 public class PaymentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
-
     private final PaymentRepository paymentRepository;
-    private final RabbitTemplate rabbitTemplate;
-    private final RabbitMQMessageRepository rabbitmqMessageRepository;
+    private final RabbitMqMessageRepository rabbitMqMessageRepository;
     private final TransactionLogRepository transactionLogRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Autowired
-    public PaymentService(PaymentRepository paymentRepository, 
-                          RabbitTemplate rabbitTemplate,
-                          RabbitMQMessageRepository rabbitmqMessageRepository,
+    public PaymentService(PaymentRepository paymentRepository,
+                          RabbitMqMessageRepository rabbitMqMessageRepository,
                           TransactionLogRepository transactionLogRepository,
-                          PaymentMethodRepository paymentMethodRepository) {
-
+                          RabbitTemplate rabbitTemplate) {
         this.paymentRepository = paymentRepository;
-        this.rabbitTemplate = rabbitTemplate;
-        this.rabbitmqMessageRepository = rabbitmqMessageRepository;
+        this.rabbitMqMessageRepository = rabbitMqMessageRepository;
         this.transactionLogRepository = transactionLogRepository;
-        this.paymentMethodRepository = paymentMethodRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
-    @Transactional
-    public Payment createPayment(Payment payment) {
-        // Define o status inicial do pagamento como PENDING
-        payment.setStatus(PaymentStatus.PENDING);
+    public List<Payment> findAll() {
+        return paymentRepository.findAll();
+    }
 
-        // Verifica se já existe uma mensagem RabbitMQ associada ao pagamento
-        RabbitMQMessage rabbitMQMessage = payment.getRabbitMQMessage();
-        if (rabbitMQMessage == null) {
-            rabbitMQMessage = new RabbitMQMessage();
-            rabbitMQMessage.setMessageContent("Payment Created");
-            rabbitMQMessage.setStatus(rabbitmqMessageStatus.PENDING);
-            rabbitMQMessage.setSentAt(ZonedDateTime.now());
+    public Payment findById(Long id) {
+        Optional<Payment> optionalPayment = paymentRepository.findById(id);
+        return optionalPayment.orElse(null);
+    }
+
+    public Payment save(Payment payment) {
+        return paymentRepository.save(payment);
+    }
+
+    public Payment update(Long id, Payment payment) {
+        if (paymentRepository.existsById(id)) {
+            payment.setUpdatedAt(ZonedDateTime.now());
+            return paymentRepository.save(payment);
         }
+        return null;
+    }
 
-        RabbitMQMessage savedMessage = rabbitmqMessageRepository.save(rabbitMQMessage);
-        payment.setRabbitMQMessage(savedMessage);
+    public boolean delete(Long id) {
+        if (paymentRepository.existsById(id)) {
+            paymentRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 
+    public Payment createPayment(Payment payment) {
+        payment.setPaymentStatus(PaymentStatus.PENDING);
         Payment savedPayment = paymentRepository.save(payment);
 
-        // Cria o TransactionLog
-        TransactionLog transactionLog = new TransactionLog();
-        transactionLog.setPayment(savedPayment);
-        transactionLog.setAction(TransactionAction.PAYMENT_CREATED);
-        transactionLog.setDetails(PaymentMethodDetailsType.BANK.name());
-        transactionLog.setTimestamp(ZonedDateTime.now());
-        transactionLogRepository.save(transactionLog);
+        // Criar log de transação
+        createTransactionLog(savedPayment, TransactionAction.PAYMENT_CREATED, "Pagamento criado com sucesso.");
 
-        // Envia a mensagem para RabbitMQ
-        sendRabbitMQMessage(savedMessage);
-        
-        PaymentMethod paymentMethod = new PaymentMethod();
-        paymentMethod.setType(PaymentMethodType.CREDIT_CARD); // Defina o tipo de pagamento
-        paymentMethod.setDetails(PaymentMethodDetailsType.BANK.name());
-        paymentMethod.addPayment(savedPayment);
+        // Publica mensagem na fila RabbitMQ
+        String messageContent = createMessageContent(savedPayment);
+        publishToRabbitMq(messageContent);
 
-        paymentMethodRepository.save(paymentMethod);
+        // Cria um registro correspondente na tabela rabbitmq_message
+        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
+        rabbitMqMessage.setMessageContent(messageContent);
+        rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
+        rabbitMqMessage.setSentAt(ZonedDateTime.now());
+        rabbitMqMessageRepository.save(rabbitMqMessage);
 
         return savedPayment;
     }
 
-    private void sendRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
-        try {
-            String messageText = rabbitMQMessage.getMessageContent();
-            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.PAYMENT_ROUTING_KEY, messageText);
-            logger.info("Message sent to RabbitMQ: {}", messageText);
-
-            rabbitMQMessage.setStatus(rabbitmqMessageStatus.SENT);
-            rabbitMQMessage.setProcessedAt(ZonedDateTime.now());
-            rabbitmqMessageRepository.save(rabbitMQMessage);
-        } catch (AmqpException e) {
-            logger.error("Error sending message to RabbitMQ: {}", e.getMessage());
-
-            rabbitMQMessage.setStatus(rabbitmqMessageStatus.ERROR);
-            rabbitMQMessage.setProcessedAt(ZonedDateTime.now());
-            rabbitmqMessageRepository.save(rabbitMQMessage);
-        }
+    private void createTransactionLog(Payment payment, TransactionAction action, String details) {
+        TransactionLog transactionLog = new TransactionLog(payment, action, details);
+        transactionLogRepository.save(transactionLog);
     }
 
-    public Payment getPaymentById(Long id) {
-        return paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + id));
+    private String createMessageContent(Payment payment) {
+        return "Pagamento criado: " + payment.toString();
     }
 
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
-    }
-
-    @Transactional
-    public Payment updatePayment(Long id, Payment payment) {
-        Payment existingPayment = getPaymentById(id);
-        existingPayment.setAmount(payment.getAmount());
-        existingPayment.setStatus(payment.getStatus());
-        return paymentRepository.save(existingPayment);
-    }
-
-    @Transactional
-    public void deletePayment(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + paymentId));
-
-        paymentRepository.delete(payment);
-        logger.info("Pagamento excluído com sucesso: " + payment);
+    private void publishToRabbitMq(String messageContent) {
+        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.PAYMENT_ROUTING_KEY, messageContent);
     }
 }

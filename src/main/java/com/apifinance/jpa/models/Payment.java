@@ -1,71 +1,97 @@
 package com.apifinance.jpa.models;
 
-import java.math.BigDecimal;
-import com.apifinance.jpa.enums.PaymentMethodType;
+import java.time.ZonedDateTime;
+
 import com.apifinance.jpa.enums.PaymentStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.apifinance.jpa.enums.PaymentType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "payment")
-public final class Payment extends BaseEntity {
+public class Payment {
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
-    @NotNull
-    private Customer customer;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gera o ID automaticamente
+    private Long id; // ID do pagamento
+
+    @ManyToOne // Relacionamento ManyToOne com Customer
+    @JoinColumn(name = "customer_id", nullable = false) // Nome da coluna no banco de dados
+    @NotNull // Garantir que um cliente esteja sempre associado
+    private Customer customer; // Cliente associado ao pagamento
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false) // Método de pagamento
+    @NotBlank
     @NotNull
-    @Column(name = "payment_method", nullable = false)
-    private PaymentMethodType paymentMethod;
+    private PaymentType paymentType;
 
-    @DecimalMin(value = "0.0", message = "O valor deve ser positivo")
+    @Column(name = "amount", nullable = false) // Valor do pagamento
     @NotNull
-    @Column(nullable = false)
-    private BigDecimal amount;
+    private Double amount;
 
-    @NotNull
-    @Column(nullable = false)
+    @Column(name = "currency", nullable = false) // Moeda do pagamento
+    @NotBlank
     private String currency;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false) // Status do pagamento
+    @NotBlank
     @NotNull
-    @Column(nullable = false)
-    private PaymentStatus status;
+    private PaymentStatus paymentStatus;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rabbitmq_message_id")
-    private RabbitMQMessage rabbitMQMessage;
+    @Column(name = "created_at", nullable = false) // Data e hora da criação do pagamento
+    private final ZonedDateTime createdAt;
 
-    @JsonIgnore
-    @ManyToOne 
-    @JoinColumn(name = "fraud_check_id",  nullable = true) 
-    private FraudCheck fraudCheck;
+    @Column(name = "updated_at") // Data e hora da última atualização do status
+    private ZonedDateTime updatedAt;
+
+    @Column(name = "fraud_check_id") // ID da análise de fraude associada
+    private Long fraudCheckId; // Assumindo que é um FK simples
 
     @Transient
-    @Column(name = "check_reason") 
-    private String checkReason;
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id", nullable = false)
+    private PaymentMethod paymentMethod;
 
-    public Payment() {}
+    @Transient
+    @ManyToOne
+    @JoinColumn(name = "rabbitmq_message_id")
+    private RabbitMqMessage rabbitMqMessage;
 
-    public Payment(Customer customer, PaymentMethodType paymentMethod, BigDecimal amount, String currency) {
+    // Construtor padrão
+    public Payment() {
+        this.createdAt = ZonedDateTime.now(); // Inicializa createdAt com a data e hora atual
+        this.updatedAt = null; // Inicializa updatedAt como null
+    }
+
+    // Construtor com parâmetros
+    public Payment(Customer customer, PaymentType paymentType, Double amount, String currency, PaymentStatus paymentStatus, Long fraudCheckId) {
         this.customer = customer;
-        this.paymentMethod = paymentMethod;
+        this.paymentType = paymentType;
         this.amount = amount;
         this.currency = currency;
+        this.paymentStatus = paymentStatus;
+        this.createdAt = ZonedDateTime.now(); // Define a data de criação
+        this.updatedAt = null; // Inicializa updatedAt como null
+        this.fraudCheckId = fraudCheckId; // Define o ID da análise de fraude
+    }
+
+    // Getters e Setters para os campos
+    public Long getId() {
+        return id;
     }
 
     public Customer getCustomer() {
@@ -76,19 +102,19 @@ public final class Payment extends BaseEntity {
         this.customer = customer;
     }
 
-    public PaymentMethodType getPaymentMethod() {
-        return paymentMethod;
+    public PaymentType getPaymentType() {
+        return paymentType;
     }
 
-    public void setPaymentMethod(PaymentMethodType paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void setPaymentType(PaymentType paymentType) {
+        this.paymentType = paymentType;
     }
 
-    public BigDecimal getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
@@ -100,52 +126,63 @@ public final class Payment extends BaseEntity {
         this.currency = currency;
     }
 
-    public PaymentStatus getStatus() {
-        return status;
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
     }
 
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
-    public RabbitMQMessage getRabbitMQMessage() {
-        return rabbitMQMessage;
+    public ZonedDateTime getCreatedAt() {
+        return createdAt; // Getter para createdAt
     }
 
-    public void setRabbitMQMessage(RabbitMQMessage rabbitMQMessage) {
-        this.rabbitMQMessage = rabbitMQMessage;
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt; // Getter para updatedAt
     }
 
-    public String getCheckReason() {
-        return checkReason;
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt; // Setter para updatedAt
     }
 
-    public void setCheckReason(String checkReason) {
-        this.checkReason = checkReason;
+    public Long getFraudCheckId() {
+        return fraudCheckId; // Getter para fraudCheckId
     }
 
-
-    public FraudCheck getFraudCheck() {
-       return fraudCheck;
+    public void setFraudCheckId(Long fraudCheckId) {
+        this.fraudCheckId = fraudCheckId; // Setter para fraudCheckId
     }
 
-    public void setFraudCheck(FraudCheck fraudCheck) {
-        this.fraudCheck = fraudCheck;
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
     }
 
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public RabbitMqMessage getRabbitMqMessage() {
+        return rabbitMqMessage;
+    }
+
+    public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
+        this.rabbitMqMessage = rabbitMqMessage;
+    }
 
     @Override
     public String toString() {
-        return "Payment{" +
-                "id=" + getId() +
-                //", customerId=" + (customer != null ? customer.getId() : null) +
-                ", amount=" + amount +
-                ", currency='" + currency + '\'' +
-                ", status=" + status +
-                ", paymentMethod=" + paymentMethod +
-                ", fraudCheckId=" + fraudCheck +
-                '}';
-   
-    }   
+        return "Payment{"
+                + "id=" + id
+                + ", customerId=" + (customer != null ? customer.getId() : null) // Inclui o ID do cliente
+                + ", paymentType='" + paymentType + '\''
+                + ", amount=" + amount
+                + ", currency='" + currency + '\''
+                + ", status='" + paymentStatus + '\''
+                + ", createdAt=" + createdAt
+                + ", updatedAt=" + updatedAt
+                + ", fraudCheckId=" + fraudCheckId
+                + '}';
+    }
 
 }

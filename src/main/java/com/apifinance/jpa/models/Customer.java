@@ -1,7 +1,16 @@
 package com.apifinance.jpa.models;
 
+import java.time.ZonedDateTime;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,32 +18,54 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "customer")
-public class Customer extends BaseEntity {
+public class Customer {
 
-    @Column(nullable = false)
-    @NotBlank // Validação para garantir que o nome não seja vazio
-    @Size(min = 1, max = 100) // Validação de tamanho para o nome
-    private String name; 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false, unique = true)
-    @NotBlank 
-    @Email 
-    private String email; 
+    @Column(name = "name", nullable = false)
+    @NotBlank
+    @Size(min = 1, max = 100)
+    private String name;
+
+    @Column(name = "email", nullable = false, unique = true)
+    @NotBlank
+    @Email
+    private String email;
 
     @Column(name = "phone_number", nullable = false)
-    @NotBlank 
-    @Size(min = 10, max = 15) 
-    private String phoneNumber; 
+    @NotBlank
+    @Size(min = 10, max = 15)
+    private String phoneNumber;
 
-    public Customer() {}
-        
+    @Column(name = "created_at", nullable = false)
+    private final ZonedDateTime createdAt;
+
+    
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Payment> payments; // Adiciona relação com Payment
+
+    public Customer() {
+        this.createdAt = ZonedDateTime.now();
+    }
+
     public Customer(String name, String email, String phoneNumber) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.createdAt = ZonedDateTime.now();
     }
 
-    
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
@@ -59,13 +90,26 @@ public class Customer extends BaseEntity {
         this.phoneNumber = phoneNumber;
     }
 
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
     @Override
     public String toString() {
-        return "Customer{" +
-            "id=" + getId() + 
-            ",name='" + name + '\'' +
-            ",email='" + email + '\'' +
-            ",phoneNumber='" + phoneNumber + '\'' +
-            '}';
+        return "Customer{"
+                + "id=" + id
+                + ", name='" + name + '\''
+                + ", email='" + email + '\''
+                + ", phoneNumber='" + phoneNumber + '\''
+                + ", createdAt=" + createdAt
+                + '}';
     }
 }

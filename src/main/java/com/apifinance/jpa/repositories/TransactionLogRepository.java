@@ -7,4 +7,5 @@ import com.apifinance.jpa.models.TransactionLog;
 
 @Repository
 public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
+    // Você pode adicionar consultas personalizadas aqui, se necessário
 }

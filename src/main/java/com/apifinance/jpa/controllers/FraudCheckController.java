@@ -1,68 +1,51 @@
 package com.apifinance.jpa.controllers;
 
+import com.apifinance.jpa.models.FraudCheck;
+import com.apifinance.jpa.services.FraudCheckService; // Supondo que você tenha um FraudCheckService
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.apifinance.jpa.models.FraudCheck;
-import com.apifinance.jpa.repositories.FraudCheckRepository;
-import com.apifinance.jpa.requests.FraudCheckRequest;
-import com.apifinance.jpa.services.FraudCheckService;
-
-import jakarta.validation.Valid;
-
 @RestController
-@RequestMapping("/fraud-check")
+@RequestMapping("/fraud-checks")
 public class FraudCheckController {
 
-    @Autowired
-    private FraudCheckService fraudCheckService;
+    private final FraudCheckService fraudCheckService;
 
     @Autowired
-    private FraudCheckRepository fraudCheckRepository;
+    public FraudCheckController(FraudCheckService fraudCheckService) {
+        this.fraudCheckService = fraudCheckService;
+    }
 
-    // Nova verificação de fraude
-    @PostMapping    
-    public ResponseEntity<FraudCheck> createFraudCheck(@Valid @RequestBody FraudCheckRequest request) {
-
-    // obter o ID do pagamento do request, se estiver disponível
-    Long paymentId = request.getPaymentId(); // Supondo que você tenha esse método em FraudCheckRequest
-
-    // Chamar o método com o ID do pagamento e o objeto request
-    FraudCheck createdFraudCheck = fraudCheckService.createFraudCheck(paymentId, request);
-    return ResponseEntity.status(201).body(createdFraudCheck);
-}
-
-    // Obter todas as verificações de fraude
     @GetMapping
     public ResponseEntity<List<FraudCheck>> getAllFraudChecks() {
-        List<FraudCheck> fraudChecks = fraudCheckRepository.findAll();
+        List<FraudCheck> fraudChecks = fraudCheckService.findAll();
         return ResponseEntity.ok(fraudChecks);
     }
 
-    // Obter verificação de fraude por ID
     @GetMapping("/{id}")
     public ResponseEntity<FraudCheck> getFraudCheckById(@PathVariable Long id) {
-        return fraudCheckRepository.findById(id)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        FraudCheck fraudCheck = fraudCheckService.findById(id);
+        return fraudCheck != null ? ResponseEntity.ok(fraudCheck) : ResponseEntity.notFound().build();
     }
 
-    // Excluir verificação de fraude
+    @PostMapping
+    public ResponseEntity<FraudCheck> createFraudCheck(@RequestBody FraudCheck fraudCheck) {
+        FraudCheck createdFraudCheck = fraudCheckService.save(fraudCheck);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdFraudCheck);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FraudCheck> updateFraudCheck(@PathVariable Long id, @RequestBody FraudCheck fraudCheck) {
+        FraudCheck updatedFraudCheck = fraudCheckService.update(id, fraudCheck);
+        return updatedFraudCheck != null ? ResponseEntity.ok(updatedFraudCheck) : ResponseEntity.notFound().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFraudCheck(@PathVariable Long id) {
-        if (!fraudCheckRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        fraudCheckRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return fraudCheckService.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

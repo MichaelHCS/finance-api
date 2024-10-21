@@ -1,4 +1,4 @@
-package com.apifinance.jpa.rabbitmqConfig;
+package com.apifinance.jpa.rabbitmqconfig;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -18,11 +18,17 @@ public class RabbitConfig {
     public static final String QUEUE_NAME = "payment-queue";
     public static final String EXCHANGE_NAME = "payment-exchange";
     public static final String PAYMENT_ROUTING_KEY = "payment.created";
+    public static final String DLQ_NAME = "payment-dlq";
 
     // Definir fila durável
     @Bean
     public Queue queue() {
         return new Queue(QUEUE_NAME, true); // 'true' indica que a fila será durável
+    }
+
+    @Bean
+    public Queue deadLetterQueue() {
+        return new Queue(DLQ_NAME, true);
     }
 
     @Bean
@@ -35,6 +41,12 @@ public class RabbitConfig {
     public Binding binding(Queue queue, Exchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(PAYMENT_ROUTING_KEY).noargs();
     }
+
+    @Bean
+    public Binding dlqBinding(Queue deadLetterQueue, Exchange exchange) {
+        return BindingBuilder.bind(deadLetterQueue).to(exchange).with(PAYMENT_ROUTING_KEY + ".dlq").noargs();
+    }
+
 
     // Definir RabbitTemplate para enviar mensagens
     @Bean
@@ -52,10 +64,10 @@ public class RabbitConfig {
             ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         configurer.configure(factory, connectionFactory);
-        
+
         // Definir o prefetch count (exemplo: 10)
-        factory.setPrefetchCount(10); 
-        
+        factory.setPrefetchCount(10);
+
         // Outras configurações opcionais
         factory.setConcurrentConsumers(1); // consumidores simultâneos
         factory.setMaxConcurrentConsumers(5); // consumidores simultâneos

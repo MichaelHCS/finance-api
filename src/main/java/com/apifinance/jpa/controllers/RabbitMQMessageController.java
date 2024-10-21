@@ -1,86 +1,51 @@
 package com.apifinance.jpa.controllers;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.apifinance.jpa.models.RabbitMqMessage;
+import com.apifinance.jpa.services.RabbitMqMessageService; // Supondo que você tenha um RabbitMqMessageService
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.apifinance.jpa.models.RabbitMQMessage;
-import com.apifinance.jpa.rabbitmqConfig.RabbitConfig;
-import com.apifinance.jpa.repositories.RabbitMQMessageRepository;
+import java.util.List;
 
 @RestController
-@RequestMapping("/rabbitmq-message")
-public class RabbitMQMessageController {
+@RequestMapping("/rabbitmq-messages")
+public class RabbitMqMessageController {
+
+    private final RabbitMqMessageService rabbitMqMessageService;
 
     @Autowired
-    private RabbitMQMessageRepository rabbitMQMessageRepository;
-
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    // Criar uma nova mensagem RabbitMQ
-    @PostMapping
-    public ResponseEntity<RabbitMQMessage> createMessage(@RequestBody RabbitMQMessage message) {
-        if (message == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        // Salvar mensagem no banco 
-        RabbitMQMessage createdMessage = rabbitMQMessageRepository.save(message);
-
-        // Enviar a mensagem para a fila RabbitMQ
-        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.PAYMENT_ROUTING_KEY, message.getMessageContent());
-
-        return ResponseEntity.status(201).body(createdMessage);
+    public RabbitMqMessageController(RabbitMqMessageService rabbitMqMessageService) {
+        this.rabbitMqMessageService = rabbitMqMessageService;
     }
 
-    // Obter mensagens RabbitMQ
     @GetMapping
-    public ResponseEntity<List<RabbitMQMessage>> getAllMessages() {
-        List<RabbitMQMessage> messages = rabbitMQMessageRepository.findAll();
+    public ResponseEntity<List<RabbitMqMessage>> getAllMessages() {
+        List<RabbitMqMessage> messages = rabbitMqMessageService.findAll();
         return ResponseEntity.ok(messages);
     }
 
-    // Obter mensagem RabbitMQ por ID
     @GetMapping("/{id}")
-    public ResponseEntity<RabbitMQMessage> getMessageById(@PathVariable Long id) {
-        Optional<RabbitMQMessage> message = rabbitMQMessageRepository.findById(id);
-        if (message.isPresent()) {
-            return ResponseEntity.ok(message.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<RabbitMqMessage> getMessageById(@PathVariable Long id) {
+        RabbitMqMessage message = rabbitMqMessageService.findById(id);
+        return message != null ? ResponseEntity.ok(message) : ResponseEntity.notFound().build();
     }
 
-    // Atualizar mensagem RabbitMQ
+    @PostMapping
+    public ResponseEntity<RabbitMqMessage> createMessage(@RequestBody RabbitMqMessage rabbitMqMessage) {
+        RabbitMqMessage createdMessage = rabbitMqMessageService.save(rabbitMqMessage);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<RabbitMQMessage> updateMessage(@PathVariable Long id, @RequestBody RabbitMQMessage message) {
-        if (!rabbitMQMessageRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        message.setId(id);
-        RabbitMQMessage updatedMessage = rabbitMQMessageRepository.save(message);
-        return ResponseEntity.ok(updatedMessage);
+    public ResponseEntity<RabbitMqMessage> updateMessage(@PathVariable Long id, @RequestBody RabbitMqMessage rabbitMqMessage) {
+        RabbitMqMessage updatedMessage = rabbitMqMessageService.update(id, rabbitMqMessage);
+        return updatedMessage != null ? ResponseEntity.ok(updatedMessage) : ResponseEntity.notFound().build();
     }
 
-    // Deletar mensagem RabbitMQ
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMessage(@PathVariable Long id) {
-        if (!rabbitMQMessageRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        rabbitMQMessageRepository.deleteById(id);
-        return ResponseEntity.noContent().build(); 
+        return rabbitMqMessageService.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

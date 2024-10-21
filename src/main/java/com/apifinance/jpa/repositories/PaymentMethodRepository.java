@@ -7,4 +7,5 @@ import com.apifinance.jpa.models.PaymentMethod;
 
 @Repository
 public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Long> {
+    // Você pode adicionar consultas personalizadas aqui, se necessário
 }

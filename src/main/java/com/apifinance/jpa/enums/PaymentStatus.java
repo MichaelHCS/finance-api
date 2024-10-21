@@ -5,7 +5,7 @@ public enum PaymentStatus {
     APPROVED("Pagamento aprovado"),
     REJECTED("Pagamento rejeitado");
 
-    private final String description ;// Detalhe sobre o status
+    private final String description;// Detalhe sobre o status
 
     // Construtor da enumeração
     PaymentStatus(String description) {

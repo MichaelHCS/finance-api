@@ -1,14 +1,12 @@
 package com.apifinance.jpa.enums;
 
-public enum RabbitMqMessageStatus {
-
-    SENT("Enviado"),
-    PROCESSED("Processado"),
-    ERROR("Erro");
+public enum FraudCheckStatus {
+    APPROVED("Aprovado"),
+    REJECTED("Rejeitado");
 
     private final String description;
 
-    RabbitMqMessageStatus(String description) {
+    FraudCheckStatus(String description) {
         this.description = description;
     }
 

@@ -1,85 +1,99 @@
 package com.apifinance.jpa.models;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
-import com.apifinance.jpa.enums.PaymentMethodType;
+import com.apifinance.jpa.enums.PaymentMethodDetails;
+import com.apifinance.jpa.enums.PaymentType;
 
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "payment_method")
-public class PaymentMethod extends BaseEntity { 
+public class PaymentMethod {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gera o ID automaticamente
+    private Long id; // ID do método de pagamento
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     @NotNull
-    private PaymentMethodType type; 
+    private PaymentType type; // Tipo de pagamento (ex: Cartão de crédito, Boleto)
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "details", nullable = false)
     @NotNull
     @Size(min = 1, max = 255)
-    private String details; 
+    private PaymentMethodDetails details;
 
-    @OneToMany(mappedBy = "paymentMethod", fetch = FetchType.LAZY)
-    private List<Payment> payments = new ArrayList<>(); 
+    @Transient
+    @OneToMany(mappedBy = "paymentMethod", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Payment> payments;
 
-    
+    // Construtor padrão
     public PaymentMethod() {
-        
     }
 
-    
-    public PaymentMethod(PaymentMethodType type, String details) {
+    // Construtor com parâmetros
+    public PaymentMethod(PaymentType type, PaymentMethodDetails details) {
         this.type = type;
         this.details = details;
     }
 
-    public PaymentMethodType getType() {
-        return type;
+    // Getters e Setters
+    public Long getId() {
+        return id; // Getter para o ID
     }
 
-    public void setType(PaymentMethodType type) {
-        this.type = type;
+    public void setId(Long id) {
+        this.id = id; // Setter para o ID
     }
 
-    public String getDetails() {
-        return details;
+    public PaymentType getType() {
+        return type; // Getter para type
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setType(PaymentType type) {
+        this.type = type; // Setter para type
     }
 
-    public List<Payment> getPayments() {
+    public PaymentMethodDetails getDetails() {
+        return details; // Getter para details
+    }
+
+    public void setDetails(PaymentMethodDetails details) {
+        this.details = details; // Setter para details
+    }
+
+    public Set<Payment> getPayments() {
         return payments;
     }
 
-    public void setPayments(List<Payment> payments) {
+    public void setPayments(Set<Payment> payments) {
         this.payments = payments;
-    }
-
-    public void addPayment(Payment payment) {
-        payments.add(payment);
-        payment.setPaymentMethod(type);
     }
 
     @Override
     public String toString() {
-        return "PaymentMethod{" +
-                "id=" + getId() + 
-                ",type=" + type +
-                ",details='" + details + '\'' +
-                '}';
+        return "PaymentMethod{"
+                + "id=" + id // Inclui o ID na representação de string
+                + ", type='" + type + '\'' // Inclui o tipo na representação de string
+                + ", details='" + details + '\'' // Inclui detalhes na representação de string
+                + '}';
     }
 
-    
 }

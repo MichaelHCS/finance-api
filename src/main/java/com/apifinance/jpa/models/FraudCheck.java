@@ -3,68 +3,76 @@ package com.apifinance.jpa.models;
 import java.time.ZonedDateTime;
 
 import com.apifinance.jpa.enums.FraudCheckReason;
-import com.apifinance.jpa.enums.FraudCheckResult;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.apifinance.jpa.enums.FraudCheckStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "fraud_check") 
-public class FraudCheck extends BaseEntity {
+@Table(name = "fraud_check")
+public class FraudCheck {
 
-    @NotNull 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id", nullable = false) 
-    @JsonBackReference
-    private Payment payment; 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @NotNull 
-    @Column(name = "fraud_status", nullable = false) 
-    private FraudCheckResult fraudStatus; 
+    @Column(name = "payment_id", nullable = false)
+    private Long paymentId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "check_reason") 
-    private FraudCheckReason checkReason; 
+    @Column(name = "fraud_status", nullable = false)
+    private FraudCheckStatus fraudStatus;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rabbitmq_message_id", nullable = false) 
-    private RabbitMQMessage rabbitmqMessage; 
-    
-    public FraudCheck() {}
+    @Enumerated(EnumType.STRING)
+    @Column(name = "check_reason")
+    private FraudCheckReason checkReason;
 
-    
-    public FraudCheck(Payment payment, FraudCheckResult fraudStatus, FraudCheckReason checkReason, RabbitMQMessage rabbitmqMessage) {
-        this.payment = payment;
+    @Column(name = "checked_at", nullable = false)
+    private final ZonedDateTime checkedAt;
+
+    @Column(name = "rabbitmq_message_id")
+    private Long rabbitmqMessageId;
+
+    public FraudCheck() {
+        this.checkedAt = ZonedDateTime.now();
+    }
+
+    public FraudCheck(Long paymentId, FraudCheckStatus fraudStatus, FraudCheckReason checkReason, Long rabbitmqMessageId) {
+        this.paymentId = paymentId;
         this.fraudStatus = fraudStatus;
         this.checkReason = checkReason;
+        this.rabbitmqMessageId = rabbitmqMessageId;
         this.checkedAt = ZonedDateTime.now();
-        this.rabbitmqMessage = rabbitmqMessage;
     }
 
-    public Payment getPayment() {
-        return payment;
+    // Getters e Setters
+    public Long getId() {
+        return id;
     }
 
-    public void setPayment(Payment payment) {
-        this.payment = payment;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public FraudCheckResult getFraudStatus() {
+    public Long getPaymentId() {
+        return paymentId; // Getter para paymentId
+    }
+
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId; // Setter para paymentId
+    }
+
+    public FraudCheckStatus getFraudStatus() {
         return fraudStatus;
     }
 
-    public void setFraudStatus(FraudCheckResult fraudStatus) {
+    public void setFraudStatus(FraudCheckStatus fraudStatus) {
         this.fraudStatus = fraudStatus;
     }
 
@@ -76,27 +84,27 @@ public class FraudCheck extends BaseEntity {
         this.checkReason = checkReason;
     }
 
-    public RabbitMQMessage getRabbitmqMessage() {
-        return rabbitmqMessage;
+    public ZonedDateTime getCheckedAt() {
+        return checkedAt;
     }
 
-    public void setRabbitmqMessage(RabbitMQMessage rabbitmqMessage) {
-        this.rabbitmqMessage = rabbitmqMessage;
+    public Long getRabbitmqMessageId() {
+        return rabbitmqMessageId;
+    }
+
+    public void setRabbitmqMessageId(Long rabbitmqMessageId) {
+        this.rabbitmqMessageId = rabbitmqMessageId;
     }
 
     @Override
     public String toString() {
-        return "FraudCheck{" +
-                "id=" + getId() +  
-                //", paymentId=" + (payment != null ? payment.getId() : null)* + 
-                ", fraudStatus=" + fraudStatus +
-                ", checkReason=" + checkReason +
-                ", checkedAt=" + getCheckedAt() +
-               
-            
-                '}';
+        return "FraudCheck{"
+                + "id=" + id
+                + ", paymentId=" + paymentId
+                + ", fraudStatus='" + fraudStatus + '\''
+                + ", checkReason='" + checkReason + '\''
+                + ", checkedAt=" + checkedAt
+                + ", rabbitmqMessageId=" + rabbitmqMessageId
+                + '}';
     }
-
- 
-        
 }

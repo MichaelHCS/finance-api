@@ -1,14 +1,12 @@
 package com.apifinance.jpa.enums;
 
-public enum RabbitMqMessageStatus {
-
-    SENT("Enviado"),
-    PROCESSED("Processado"),
-    ERROR("Erro");
+public enum PaymentMethodDetails {
+    CARD_NUMBER("Número do Cartão de Crédito"),
+    BANK("Banco");
 
     private final String description;
 
-    RabbitMqMessageStatus(String description) {
+    PaymentMethodDetails(String description) {
         this.description = description;
     }
 

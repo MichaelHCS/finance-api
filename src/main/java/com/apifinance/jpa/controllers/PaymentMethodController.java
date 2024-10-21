@@ -1,9 +1,9 @@
 package com.apifinance.jpa.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired; // Supondo que você tenha um PaymentMethodService
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,61 +15,45 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apifinance.jpa.models.PaymentMethod;
-import com.apifinance.jpa.repositories.PaymentMethodRepository;
+import com.apifinance.jpa.services.PaymentMethodService;
 
 @RestController
-@RequestMapping("/payment-method")
+@RequestMapping("/payment-methods")
 public class PaymentMethodController {
 
-    @Autowired
-    private PaymentMethodRepository paymentMethodRepository;
+    private final PaymentMethodService paymentMethodService;
 
-    // Criar um novo método de pagamento
-    @PostMapping
-    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
-        if (paymentMethod == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        PaymentMethod createdPaymentMethod = paymentMethodRepository.save(paymentMethod);
-        return ResponseEntity.status(201).body(createdPaymentMethod);
+    @Autowired
+    public PaymentMethodController(PaymentMethodService paymentMethodService) {
+        this.paymentMethodService = paymentMethodService;
     }
 
-    // Obter todos os métodos de pagamento
     @GetMapping
     public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
-        List<PaymentMethod> paymentMethods = paymentMethodRepository.findAll();
+        List<PaymentMethod> paymentMethods = paymentMethodService.findAll();
         return ResponseEntity.ok(paymentMethods);
     }
 
-    // Obter método de pagamento por ID
     @GetMapping("/{id}")
     public ResponseEntity<PaymentMethod> getPaymentMethodById(@PathVariable Long id) {
-        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findById(id);
-        if (paymentMethod.isPresent()) {
-            return ResponseEntity.ok(paymentMethod.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        PaymentMethod paymentMethod = paymentMethodService.findById(id);
+        return paymentMethod != null ? ResponseEntity.ok(paymentMethod) : ResponseEntity.notFound().build();
     }
 
-    // Atualizar método de pagamento
+    @PostMapping
+    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
+        PaymentMethod createdPaymentMethod = paymentMethodService.save(paymentMethod);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdPaymentMethod);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<PaymentMethod> updatePaymentMethod(@PathVariable Long id, @RequestBody PaymentMethod paymentMethod) {
-        if (!paymentMethodRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        paymentMethod.setId(id);
-        PaymentMethod updatedPaymentMethod = paymentMethodRepository.save(paymentMethod);
-        return ResponseEntity.ok(updatedPaymentMethod);
+        PaymentMethod updatedPaymentMethod = paymentMethodService.update(id, paymentMethod);
+        return updatedPaymentMethod != null ? ResponseEntity.ok(updatedPaymentMethod) : ResponseEntity.notFound().build();
     }
 
-    // Deletar método de pagamento
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePaymentMethod(@PathVariable Long id) {
-        if (!paymentMethodRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        paymentMethodRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return paymentMethodService.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
