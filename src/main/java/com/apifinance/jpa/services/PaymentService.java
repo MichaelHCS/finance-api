@@ -66,9 +66,13 @@ public class PaymentService {
     }
 
     public Payment createPayment(Payment payment) {
-        payment.setPaymentStatus(PaymentStatus.PENDING);
+        // Defina o status do pagamento
+        if (payment.getPaymentStatus() == null) {
+            payment.setPaymentStatus(PaymentStatus.PENDING); // Define um valor padrão se não estiver definido
+        }
+        
+        // Salva o pagamento no repositório
         Payment savedPayment = paymentRepository.save(payment);
-
         // Criar log de transação
         createTransactionLog(savedPayment, TransactionAction.PAYMENT_CREATED, "Pagamento criado com sucesso.");
 

@@ -1,19 +1,16 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
-import java.util.List;
+//import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -25,17 +22,17 @@ public class Customer {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    @NotBlank
+    @NotNull
     @Size(min = 1, max = 100)
     private String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    @NotBlank
+    @NotNull
     @Email
     private String email;
 
     @Column(name = "phone_number", nullable = false)
-    @NotBlank
+    @NotNull
     @Size(min = 10, max = 15)
     private String phoneNumber;
 
@@ -43,8 +40,8 @@ public class Customer {
     private final ZonedDateTime createdAt;
 
     
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Payment> payments; // Adiciona relação com Payment
+    //@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<Payment> payments; // Adiciona relação com Payment
 
     public Customer() {
         this.createdAt = ZonedDateTime.now();
@@ -94,13 +91,13 @@ public class Customer {
         return createdAt;
     }
 
-    public List<Payment> getPayments() {
-        return payments;
-    }
+    //public List<Payment> getPayments() {
+    //    return payments;
+    //}
 
-    public void setPayments(List<Payment> payments) {
-        this.payments = payments;
-    }
+    //public void setPayments(List<Payment> payments) {
+    //    this.payments = payments;
+    //}
 
     @Override
     public String toString() {

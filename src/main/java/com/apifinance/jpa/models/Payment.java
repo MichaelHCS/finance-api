@@ -15,8 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -34,7 +32,6 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false) // Método de pagamento
-    @NotBlank
     @NotNull
     private PaymentType paymentType;
 
@@ -43,12 +40,10 @@ public class Payment {
     private Double amount;
 
     @Column(name = "currency", nullable = false) // Moeda do pagamento
-    @NotBlank
     private String currency;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false) // Status do pagamento
-    @NotBlank
     @NotNull
     private PaymentStatus paymentStatus;
 
@@ -61,15 +56,15 @@ public class Payment {
     @Column(name = "fraud_check_id") // ID da análise de fraude associada
     private Long fraudCheckId; // Assumindo que é um FK simples
 
-    @Transient
-    @ManyToOne
-    @JoinColumn(name = "payment_method_id", nullable = false)
-    private PaymentMethod paymentMethod;
+    //@Transient
+   // @ManyToOne
+    //@JoinColumn(name = "payment_method_id", nullable = false)
+    //private PaymentMethod paymentMethod;
 
-    @Transient
-    @ManyToOne
-    @JoinColumn(name = "rabbitmq_message_id")
-    private RabbitMqMessage rabbitMqMessage;
+    //@Transient
+    //@ManyToOne
+    //@JoinColumn(name = "rabbitmq_message_id")
+    //private RabbitMqMessage rabbitMqMessage;
 
     // Construtor padrão
     public Payment() {
@@ -154,21 +149,21 @@ public class Payment {
         this.fraudCheckId = fraudCheckId; // Setter para fraudCheckId
     }
 
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
+    //public PaymentMethod getPaymentMethod() {
+    //    return paymentMethod;
+    //}
 
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
+    //public void setPaymentMethod(PaymentMethod paymentMethod) {
+     //   this.paymentMethod = paymentMethod;
+    //}
 
-    public RabbitMqMessage getRabbitMqMessage() {
-        return rabbitMqMessage;
-    }
+    //public RabbitMqMessage getRabbitMqMessage() {
+    //    return rabbitMqMessage;
+    //}
 
-    public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
-        this.rabbitMqMessage = rabbitMqMessage;
-    }
+    //public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
+    //    this.rabbitMqMessage = rabbitMqMessage;
+    //}
 
     @Override
     public String toString() {

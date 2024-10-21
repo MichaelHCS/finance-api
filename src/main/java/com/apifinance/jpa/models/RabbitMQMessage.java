@@ -1,22 +1,22 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
-import java.util.List;
+//import java.util.List;
 
 import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
-import jakarta.persistence.CascadeType;
+//import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
+//import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+//import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -44,9 +44,8 @@ public class RabbitMqMessage {
     @Column(name = "processed_at") // Data e hora do processamento da mensagem
     private ZonedDateTime processedAt; // Inicialmente pode ser null
 
-    @Transient
-    @OneToMany(mappedBy = "rabbitMqMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Payment> payments;
+    //@OneToMany(mappedBy = "rabbitMqMessage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<Payment> payments;
 
     // Construtor padrão
     public RabbitMqMessage() {
@@ -100,16 +99,16 @@ public class RabbitMqMessage {
     }
 
     public void setProcessedAt(ZonedDateTime processedAt) {
-        this.processedAt = processedAt; // Setter para processedAt
+       this.processedAt = processedAt; // Setter para processedAt
     }
 
-    public List<Payment> getPayments() {
-        return payments;
-    }
+    //public List<Payment> getPayments() {
+     //   return payments;
+    //}
 
-    public void setPayments(List<Payment> payments) {
-        this.payments = payments;
-    }
+    //public void setPayments(List<Payment> payments) {
+    //    this.payments = payments;
+    //}
 
     @Override
     public String toString() {

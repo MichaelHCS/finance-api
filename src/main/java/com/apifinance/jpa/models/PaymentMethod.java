@@ -1,23 +1,23 @@
 package com.apifinance.jpa.models;
 
-import java.util.Set;
+//import java.util.Set;
 
 import com.apifinance.jpa.enums.PaymentMethodDetails;
 import com.apifinance.jpa.enums.PaymentType;
 
 
-import jakarta.persistence.CascadeType;
+//import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
+//import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+//import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -40,9 +40,8 @@ public class PaymentMethod {
     @Size(min = 1, max = 255)
     private PaymentMethodDetails details;
 
-    @Transient
-    @OneToMany(mappedBy = "paymentMethod", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Payment> payments;
+    //@OneToMany(mappedBy = "paymentMethod", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+   // private Set<Payment> payments;
 
     // Construtor padrão
     public PaymentMethod() {
@@ -79,13 +78,13 @@ public class PaymentMethod {
         this.details = details; // Setter para details
     }
 
-    public Set<Payment> getPayments() {
-        return payments;
-    }
+    //public Set<Payment> getPayments() {
+    //    return payments;
+    //}
 
-    public void setPayments(Set<Payment> payments) {
-        this.payments = payments;
-    }
+    //public void setPayments(Set<Payment> payments) {
+   //     this.payments = payments;
+    //}
 
     @Override
     public String toString() {
