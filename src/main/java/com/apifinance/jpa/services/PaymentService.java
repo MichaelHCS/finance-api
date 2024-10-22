@@ -123,8 +123,15 @@ public class PaymentService {
     }
 
     private void createPaymentMethod(PaymentType type, PaymentMethodDetails details) {
-        PaymentMethod paymentMethod = new PaymentMethod(type, details);
-        paymentMethodRepository.save(paymentMethod);
+        PaymentMethod existingMethod = paymentMethodRepository.findByTypeAndDetails(type, details);
+        if (existingMethod == null) {
+            // Se não existir, crie um novo
+            PaymentMethod paymentMethod = new PaymentMethod(type, details);
+            paymentMethodRepository.save(paymentMethod);
+        } else {
+            // Se já existir, apenas associá-lo ao pagamento
+            System.out.println("Método de pagamento já existe e será utilizado.");
+        }
     }
 
     private String createMessageContent(Payment payment) {

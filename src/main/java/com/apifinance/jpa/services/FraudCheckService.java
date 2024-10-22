@@ -77,6 +77,7 @@ public class FraudCheckService {
             fraudCheckRepository.save(fraudCheck);
 
             // Atualizar o status do pagamento
+            payment.setFraudCheck(fraudCheck);
             payment.setPaymentStatus(isFraud ? PaymentStatus.REJECTED : PaymentStatus.APPROVED); // Atualiza o status do pagamento
             paymentRepository.save(payment); // Salva as atualizações do pagamento
         } else {
