@@ -1,7 +1,5 @@
 package com.apifinance.jpa.models;
 
-import java.time.ZonedDateTime;
-
 import com.apifinance.jpa.enums.TransactionAction;
 
 import jakarta.persistence.Column;
@@ -13,63 +11,61 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "transaction_log")
 public class TransactionLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gera o ID automaticamente
-    private Long id; // ID do log
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Identificador único do log
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
-    private Payment payment;
+    private Payment payment; // Pagamento associado (FK)
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "action", nullable = false) // Ação realizada
-    @NotBlank // Garantir que a ação não esteja em branco
+    @Column(name = "action",nullable = false)
     private TransactionAction action; // Ação realizada (ex: "Pagamento criado", "Fraude detectada")
 
-    @Column(name = "timestamp", nullable = false) // Data e hora do log
-    @NotNull // Garantir que o timestamp não seja nulo
+    @Column(name ="timestamp",nullable = false)
     private ZonedDateTime timestamp; // Data e hora do log
 
-    @Column(name = "details", nullable = false) // Detalhes adicionais sobre a ação
-    private String details; // Detalhes adicionais (opcional)
+    @Lob
+    @Column(name= "details", nullable = true)
+    private String details; // Detalhes adicionais sobre a ação
 
-    // Construtor padrão
+    // Construtores
     public TransactionLog() {
-        this.timestamp = ZonedDateTime.now(); // Inicializa timestamp com a data e hora atual
     }
 
-    // Construtor com parâmetros
-    public TransactionLog(Payment payment, TransactionAction action, String details) {
+    public TransactionLog(Payment payment, TransactionAction action, ZonedDateTime timestamp, String details) {
         this.payment = payment;
         this.action = action;
-        this.timestamp = ZonedDateTime.now(); // Define a data e hora do log
-        this.details = details; // Define os detalhes adicionais
+        this.timestamp = timestamp;
+        this.details = details;
     }
 
     // Getters e Setters
     public Long getId() {
-        return id; // Getter para o ID
+        return id;
     }
 
     public void setId(Long id) {
-        this.id = id; // Setter para o ID
+        this.id = id;
     }
 
     public Payment getPayment() {
-        return payment; // Getter para paymentId
+        return payment;
     }
 
     public void setPayment(Payment payment) {
-        this.payment = payment; // Setter para paymentId
+        this.payment = payment;
     }
 
     public TransactionAction getAction() {
@@ -81,29 +77,30 @@ public class TransactionLog {
     }
 
     public ZonedDateTime getTimestamp() {
-        return timestamp; // Getter para timestamp
+        return timestamp;
     }
 
     public void setTimestamp(ZonedDateTime timestamp) {
-        this.timestamp = timestamp; // Setter para timestamp
+        this.timestamp = timestamp;
     }
 
     public String getDetails() {
-        return details; // Getter para details
+        return details;
     }
 
     public void setDetails(String details) {
-        this.details = details; // Setter para details
+        this.details = details;
     }
 
     @Override
     public String toString() {
         return "TransactionLog{"
-                + "id=" + id // Inclui o ID na representação de string
-                + ", payment=" + (payment != null ? payment.getId() : null)
-                + ", action=" + action + '\'' // Inclui a ação realizada
-                + ", timestamp=" + timestamp // Inclui a data e hora do log
-                + ", details='" + details + '\'' // Inclui os detalhes adicionais
+                + "id=" + id
+                + ", payment=" + (payment != null ? payment.getId() : "null") // Para evitar a impressão do objeto Payment completo
+                + ", action=" + action
+                + ", timestamp=" + timestamp
+                + ", details='" + details + '\''
                 + '}';
     }
+
 }

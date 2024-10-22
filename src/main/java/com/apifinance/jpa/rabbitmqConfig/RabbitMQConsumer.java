@@ -2,6 +2,7 @@ package com.apifinance.jpa.rabbitmqconfig;
 
 import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
+import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
 @Component
 public class RabbitMQConsumer {
@@ -37,13 +37,13 @@ public class RabbitMQConsumer {
         RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
         rabbitMqMessage.setMessageContent(messageContent);
         rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT); // Atualizando para usar enum
-        rabbitMqMessage.setSentAt(ZonedDateTime.now());
+        rabbitMqMessage.setSentAt(ZonedDateTime.now()); // Usando LocalDateTime
         messageRepository.save(rabbitMqMessage);
 
         try {
             processMessage(rabbitMqMessage);
             rabbitMqMessage.setStatus(RabbitMqMessageStatus.PROCESSED); // Atualizando para usar enum
-            rabbitMqMessage.setProcessedAt(ZonedDateTime.now());
+            rabbitMqMessage.setProcessedAt(ZonedDateTime.now()); // Usando LocalDateTime
             messageRepository.save(rabbitMqMessage);
 
             logger.info("Mensagem processada com sucesso: {}", messageContent);
@@ -59,13 +59,13 @@ public class RabbitMQConsumer {
         logger.error("Erro ao processar a mensagem: {}. Enviando para a DLQ.", messageContent, e);
         rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR); // Atualizando para usar enum
         rabbitMqMessage.setProcessedAt(ZonedDateTime.now()); // Atualizando para a data de erro
-        messageRepository.save(rabbitMqMessage);
+        messageRepository.save(rabbitMqMessage);    
         sendToDeadLetterQueue(messageContent);
     }
 
     private void processMessage(RabbitMqMessage rabbitMqMessage) throws InterruptedException {
         logger.info("Iniciando o processamento da mensagem: {}. Aguardando 30 segundos...", rabbitMqMessage.getMessageContent());
-        Thread.sleep(30000);
+        Thread.sleep(30000); // Simulação de processamento
         logger.info("Processando a mensagem: {}", rabbitMqMessage.getMessageContent());
         if (rabbitMqMessage.getMessageContent().contains("error")) {
             throw new RuntimeException("Erro simulado no processamento da mensagem.");

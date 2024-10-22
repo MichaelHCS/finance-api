@@ -9,9 +9,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -22,33 +26,34 @@ public class FraudCheck {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "payment_id", nullable = false)
-    private Long paymentId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", nullable = false)
+    private Payment payment; // Supondo que a entidade Payment já esteja criada
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fraud_status", nullable = false)
     private FraudCheckStatus fraudStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "check_reason")
+    @Column(name = "check_reason", nullable = false)
     private FraudCheckReason checkReason;
 
     @Column(name = "checked_at", nullable = false)
-    private final ZonedDateTime checkedAt;
+    private ZonedDateTime checkedAt;
 
-    @Column(name = "rabbitmq_message_id")
-    private Long rabbitmqMessageId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rabbitmq_message_id")
+    private RabbitMqMessage rabbitMqMessage; // Supondo que tenha uma entidade RabbitmqMessage
 
-    public FraudCheck() {
-        this.checkedAt = ZonedDateTime.now();
-    }
 
-    public FraudCheck(Long paymentId, FraudCheckStatus fraudStatus, FraudCheckReason checkReason, Long rabbitmqMessageId) {
-        this.paymentId = paymentId;
+    // Construtores, getters e setters
+    public FraudCheck(Payment payment, FraudCheckStatus fraudStatus, FraudCheckReason checkReason, ZonedDateTime checkedAt, RabbitMqMessage rabbitMqMessage) {
+        this.payment = payment;
         this.fraudStatus = fraudStatus;
         this.checkReason = checkReason;
-        this.rabbitmqMessageId = rabbitmqMessageId;
-        this.checkedAt = ZonedDateTime.now();
+        this.checkedAt = checkedAt != null ? checkedAt : ZonedDateTime.now();
+        this.rabbitMqMessage = rabbitMqMessage;
+
     }
 
     // Getters e Setters
@@ -60,12 +65,12 @@ public class FraudCheck {
         this.id = id;
     }
 
-    public Long getPaymentId() {
-        return paymentId; // Getter para paymentId
+    public Payment getPayment() {
+        return payment;
     }
 
-    public void setPaymentId(Long paymentId) {
-        this.paymentId = paymentId; // Setter para paymentId
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public FraudCheckStatus getFraudStatus() {
@@ -88,23 +93,28 @@ public class FraudCheck {
         return checkedAt;
     }
 
-    public Long getRabbitmqMessageId() {
-        return rabbitmqMessageId;
+    public void setCheckedAt(ZonedDateTime checkedAt) {
+        this.checkedAt = checkedAt;
     }
 
-    public void setRabbitmqMessageId(Long rabbitmqMessageId) {
-        this.rabbitmqMessageId = rabbitmqMessageId;
+    public RabbitMqMessage getRabbitMqMessage() {
+        return rabbitMqMessage;
+    }
+
+    public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
+        this.rabbitMqMessage = rabbitMqMessage;
     }
 
     @Override
     public String toString() {
         return "FraudCheck{"
                 + "id=" + id
-                + ", paymentId=" + paymentId
-                + ", fraudStatus='" + fraudStatus + '\''
-                + ", checkReason='" + checkReason + '\''
+                + ", payment=" + (payment != null ? payment.getId() : "null") // Evita carregar toda a entidade de forma preguiçosa
+                + ", fraudStatus=" + fraudStatus
+                + ", checkReason=" + checkReason
                 + ", checkedAt=" + checkedAt
-                + ", rabbitmqMessageId=" + rabbitmqMessageId
+                + ", rabbitMqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null") // Evita carregar toda a entidade de forma preguiçosa
                 + '}';
     }
+
 }

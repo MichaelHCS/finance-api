@@ -39,10 +39,6 @@ public class Customer {
     @Column(name = "created_at", nullable = false)
     private final ZonedDateTime createdAt;
 
-    
-    //@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    //private List<Payment> payments; // Adiciona relação com Payment
-
     public Customer() {
         this.createdAt = ZonedDateTime.now();
     }
@@ -90,14 +86,6 @@ public class Customer {
     public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
-
-    //public List<Payment> getPayments() {
-    //    return payments;
-    //}
-
-    //public void setPayments(List<Payment> payments) {
-    //    this.payments = payments;
-    //}
 
     @Override
     public String toString() {
