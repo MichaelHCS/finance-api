@@ -45,15 +45,8 @@ public class FraudCheck {
     @JoinColumn(name = "rabbitmq_message_id")
     private RabbitMqMessage rabbitMqMessage; // Supondo que tenha uma entidade RabbitmqMessage
 
-
-    // Construtores, getters e setters
-    public FraudCheck(Payment payment, FraudCheckStatus fraudStatus, FraudCheckReason checkReason, ZonedDateTime checkedAt, RabbitMqMessage rabbitMqMessage) {
-        this.payment = payment;
-        this.fraudStatus = fraudStatus;
-        this.checkReason = checkReason;
-        this.checkedAt = checkedAt != null ? checkedAt : ZonedDateTime.now();
-        this.rabbitMqMessage = rabbitMqMessage;
-
+    public FraudCheck() {
+        this.checkedAt = ZonedDateTime.now(); // Define a data e hora atual como valor padrão
     }
 
     // Getters e Setters
@@ -109,11 +102,11 @@ public class FraudCheck {
     public String toString() {
         return "FraudCheck{"
                 + "id=" + id
-                + ", payment=" + (payment != null ? payment.getId() : "null") // Evita carregar toda a entidade de forma preguiçosa
+                + ", payment=" + payment // Evita carregar toda a entidade de forma preguiçosa
                 + ", fraudStatus=" + fraudStatus
                 + ", checkReason=" + checkReason
                 + ", checkedAt=" + checkedAt
-                + ", rabbitMqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null") // Evita carregar toda a entidade de forma preguiçosa
+                + ", rabbitMqMessage=" + rabbitMqMessage // Evita carregar toda a entidade de forma preguiçosa
                 + '}';
     }
 

@@ -7,14 +7,14 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apifinance.jpa.enums.FraudCheckReason;
+import com.apifinance.jpa.enums.FraudCheckStatus;
+import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
 import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.enums.FraudCheckReason;
-import com.apifinance.jpa.enums.FraudCheckStatus;
-import com.apifinance.jpa.enums.PaymentStatus;
 
 @Service
 public class FraudCheckService {
@@ -57,20 +57,21 @@ public class FraudCheckService {
         return false; // Retorna false se a verificação de fraude não existir
     }
 
-    public void analyzeFraud(Long paymentId, boolean isFraud, FraudCheckReason checkReason, RabbitMqMessage rabbitMqMessage) {
+    public void analyzeFraud(Long paymentId, boolean isFraud, FraudCheckReason checkReason,  RabbitMqMessage rabbitMqMessage) {
         // Encontrar o pagamento correspondente
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
         if (optionalPayment.isPresent()) {
             Payment payment = optionalPayment.get();
 
             // Criar uma nova análise de fraude usando o construtor que aceita parâmetros
-            FraudCheck fraudCheck = new FraudCheck(
-                    payment,
-                    isFraud ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED,
-                    checkReason,
-                    ZonedDateTime.now(),
-                    rabbitMqMessage
-            );
+            FraudCheck fraudCheck = new FraudCheck();
+            fraudCheck.setPayment(payment);
+            fraudCheck.setCheckReason(checkReason);
+            fraudCheck.setCheckedAt(ZonedDateTime.now());
+            fraudCheck.setFraudStatus(isFraud ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED);
+            fraudCheck.setRabbitMqMessage(rabbitMqMessage); // Associe a mensagem RabbitMQ se existir
+
+            //System.out.println("Checked At: " + checkedAt);
 
             // Salva a análise de fraude
             fraudCheckRepository.save(fraudCheck);

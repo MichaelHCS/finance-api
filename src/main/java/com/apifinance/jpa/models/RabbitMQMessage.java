@@ -23,28 +23,22 @@ public class RabbitMqMessage {
     private Long id; // Identificador único da mensagem
 
     @Lob
-    @Column(name = "message_content",nullable = false)
+    @Column(name = "message_content", nullable = false)
     private String messageContent; // Conteúdo da mensagem (JSON ou texto)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private RabbitMqMessageStatus status; // Status da mensagem (enviado, processado, erro)
 
-    @Column(name = "sent_at",nullable = false)
+    @Column(name = "sent_at", nullable = false)
     private ZonedDateTime sentAt; // Data e hora de envio da mensagem
 
-    @Column(name = "processed_at",nullable = true)
+    @Column(name = "processed_at", nullable = true)
     private ZonedDateTime processedAt; // Data e hora do processamento da mensagem (pode ser nulo)
 
     // Construtores
     public RabbitMqMessage() {
-    }
-
-    public RabbitMqMessage(String messageContent, RabbitMqMessageStatus status, ZonedDateTime sentAt, ZonedDateTime processedAt) {
-        this.messageContent = messageContent;
-        this.status = status;
-        this.sentAt = sentAt;
-        this.processedAt = processedAt;
+        this.processedAt = ZonedDateTime.now();
     }
 
     // Getters e Setters

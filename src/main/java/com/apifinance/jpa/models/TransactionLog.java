@@ -30,14 +30,14 @@ public class TransactionLog {
     private Payment payment; // Pagamento associado (FK)
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "action",nullable = false)
+    @Column(name = "action", nullable = false)
     private TransactionAction action; // Ação realizada (ex: "Pagamento criado", "Fraude detectada")
 
-    @Column(name ="timestamp",nullable = false)
+    @Column(name = "timestamp", nullable = false)
     private ZonedDateTime timestamp; // Data e hora do log
 
     @Lob
-    @Column(name= "details", nullable = true)
+    @Column(name = "details", nullable = true)
     private String details; // Detalhes adicionais sobre a ação
 
     // Construtores

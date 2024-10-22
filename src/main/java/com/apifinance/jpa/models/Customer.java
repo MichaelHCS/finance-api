@@ -37,17 +37,11 @@ public class Customer {
     private String phoneNumber;
 
     @Column(name = "created_at", nullable = false)
-    private final ZonedDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     public Customer() {
-        this.createdAt = ZonedDateTime.now();
-    }
+        this.createdAt = ZonedDateTime.now(); // Define a data e hora atual como valor padrão
 
-    public Customer(String name, String email, String phoneNumber) {
-        this.name = name;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.createdAt = ZonedDateTime.now();
     }
 
     // Getters e Setters
@@ -85,6 +79,10 @@ public class Customer {
 
     public ZonedDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

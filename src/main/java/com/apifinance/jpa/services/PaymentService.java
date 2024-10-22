@@ -21,14 +21,14 @@ import com.apifinance.jpa.rabbitmqconfig.RabbitConfig;
 import com.apifinance.jpa.repositories.CustomerRepository;
 import com.apifinance.jpa.repositories.PaymentMethodRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
+//import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
 import com.apifinance.jpa.repositories.TransactionLogRepository;
 
 @Service
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final RabbitMqMessageRepository rabbitMqMessageRepository;
+    //private final RabbitMqMessageRepository rabbitMqMessageRepository;
     private final TransactionLogRepository transactionLogRepository;
     private final RabbitTemplate rabbitTemplate;
     private final PaymentMethodRepository paymentMethodRepository;
@@ -36,13 +36,13 @@ public class PaymentService {
 
     @Autowired
     public PaymentService(PaymentRepository paymentRepository,
-                          RabbitMqMessageRepository rabbitMqMessageRepository,
+                          //RabbitMqMessageRepository rabbitMqMessageRepository,
                           TransactionLogRepository transactionLogRepository,
                           RabbitTemplate rabbitTemplate,
                           PaymentMethodRepository paymentMethodRepository,
                           CustomerRepository customerRepository) {
         this.paymentRepository = paymentRepository;
-        this.rabbitMqMessageRepository = rabbitMqMessageRepository;
+        //this.rabbitMqMessageRepository = rabbitMqMessageRepository;
         this.transactionLogRepository = transactionLogRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.paymentMethodRepository = paymentMethodRepository;

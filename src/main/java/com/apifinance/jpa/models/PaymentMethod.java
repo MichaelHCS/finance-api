@@ -30,6 +30,7 @@ public class PaymentMethod {
 
     // Construtores
     public PaymentMethod() {
+        
     }
 
     public PaymentMethod(PaymentType type, PaymentMethodDetails details) {

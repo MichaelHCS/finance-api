@@ -56,16 +56,12 @@ public class Payment {
 
     // Construtores, getters e setters
     public Payment() {
-        this.customer = customer;
-        this.paymentMethod = paymentMethod;
-        this.amount = amount;
-        this.currency = currency;
-        this.status = status != null ? status : PaymentStatus.PENDING; // Define status padrão
-        this.createdAt = createdAt != null ? createdAt : ZonedDateTime.now();
-        this.updatedAt = updatedAt;
-        this.fraudCheck = fraudCheck;
+        this.createdAt = ZonedDateTime.now();
+        this.updatedAt = ZonedDateTime.now();
+
     }
 
+    
     // Getters e Setters
     public Long getId() {
         return id;
