@@ -3,6 +3,7 @@ package com.apifinance.jpa.models;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
+import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
 
@@ -16,7 +17,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "payments")
@@ -50,9 +53,12 @@ public class Payment {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fraud_check_id")
     private FraudCheck fraudCheck; // Supondo que você tenha uma entidade FraudCheck
+
+    @Transient // Adiciona esta anotação para que a coluna não seja persistida
+    private FraudCheckReason checkReason; // Novo campo para o motivo da verificação de fraude
 
     // Construtores, getters e setters
     public Payment() {
@@ -61,7 +67,6 @@ public class Payment {
 
     }
 
-    
     // Getters e Setters
     public Long getId() {
         return id;
@@ -133,6 +138,14 @@ public class Payment {
 
     public void setFraudCheck(FraudCheck fraudCheck) {
         this.fraudCheck = fraudCheck;
+    }
+
+    public FraudCheckReason getCheckReason() {
+        return checkReason;
+    }
+
+    public void setCheckReason(FraudCheckReason checkReason) {
+        this.checkReason = checkReason;
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apifinance.jpa.enums.FraudCheckStatus;
 import com.apifinance.jpa.enums.PaymentMethodDetails;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
@@ -28,7 +29,7 @@ import com.apifinance.jpa.repositories.TransactionLogRepository;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    //private final RabbitMqMessageRepository rabbitMqMessageRepository;
+   // private final RabbitMqMessageRepository rabbitMqMessageRepository; // Incluído
     private final TransactionLogRepository transactionLogRepository;
     private final RabbitTemplate rabbitTemplate;
     private final PaymentMethodRepository paymentMethodRepository;
@@ -42,7 +43,7 @@ public class PaymentService {
                           PaymentMethodRepository paymentMethodRepository,
                           CustomerRepository customerRepository) {
         this.paymentRepository = paymentRepository;
-        //this.rabbitMqMessageRepository = rabbitMqMessageRepository;
+        //this.rabbitMqMessageRepository = rabbitMqMessageRepository; // Inicializado
         this.transactionLogRepository = transactionLogRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.paymentMethodRepository = paymentMethodRepository;
@@ -73,10 +74,10 @@ public class PaymentService {
         newPayment.setAmount(payment.getAmount());
         newPayment.setCurrency(payment.getCurrency());
         newPayment.setPaymentMethod(payment.getPaymentMethod());
-        newPayment.setPaymentStatus(PaymentStatus.PENDING);
+        newPayment.setPaymentStatus(PaymentStatus.PENDING); // Status inicial
         newPayment.setCreatedAt(ZonedDateTime.now());
         newPayment.setUpdatedAt(null);
-        newPayment.setFraudCheck(payment.getFraudCheck()); // Atualizado para usar a entidade FraudCheck
+        //newPayment.setFraudCheck(payment.getFraudCheck()); // Atualizado para usar a entidade FraudCheck
 
         // Chame o método createPaymentMethod apenas se o paymentMethod for válido
         createPaymentMethod(payment.getPaymentMethod(), PaymentMethodDetails.BANK);
@@ -96,17 +97,38 @@ public class PaymentService {
         rabbitMqMessage.setMessageContent(messageContent);
         rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
         rabbitMqMessage.setSentAt(ZonedDateTime.now());
-        //rabbitMqMessageRepository.save(rabbitMqMessage);
+        //rabbitMqMessageRepository.save(rabbitMqMessage); // Salvar a mensagem
 
         return savedPayment;
     }
 
     public Payment update(Long id, Payment payment) {
-        if (paymentRepository.existsById(id)) {
-            payment.setUpdatedAt(ZonedDateTime.now());
-            return paymentRepository.save(payment);
+        Payment existingPayment = paymentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pagamento não encontrado."));
+
+        // Atualiza o campo fraud_check_id e o status do pagamento com base na verificação de fraude
+        if (payment.getFraudCheck() != null) {
+
+            FraudCheckStatus fraudStatus = payment.getFraudCheck().getFraudStatus();
+
+            if (fraudStatus == FraudCheckStatus.APPROVED) {
+                existingPayment.setPaymentStatus(PaymentStatus.APPROVED);
+            } else if (fraudStatus == FraudCheckStatus.REJECTED) {
+                existingPayment.setPaymentStatus(PaymentStatus.REJECTED);
+                // Se houver erro ou necessidade de revisão, armazena o motivo
+                if (payment.getFraudCheck().getCheckReason() != null) {
+                    existingPayment.setCheckReason(payment.getFraudCheck().getCheckReason()); // Armazena o motivo de revisão
+                }
+            }
+            //existingPayment.setFraudCheck(payment.getFraudCheck()); // Atualiza o fraud_check associado
+            // Atualiza o campo updated_at
+            //existingPayment.setUpdatedAt(ZonedDateTime.now());
+        } else {
+            // Mantém updated_at como null se o fraud_check não for atualizado
+            //existingPayment.setUpdatedAt(null);
         }
-        return null;
+
+        return paymentRepository.save(existingPayment);
     }
 
     public boolean delete(Long id) {

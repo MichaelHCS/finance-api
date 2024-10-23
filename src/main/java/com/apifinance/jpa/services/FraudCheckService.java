@@ -57,32 +57,35 @@ public class FraudCheckService {
         return false; // Retorna false se a verificação de fraude não existir
     }
 
-    public void analyzeFraud(Long paymentId, boolean isFraud, FraudCheckReason checkReason,  RabbitMqMessage rabbitMqMessage) {
-        // Encontrar o pagamento correspondente
+   public void analyzeFraud(Long paymentId, boolean isFraud, FraudCheckReason checkReason, RabbitMqMessage rabbitMqMessage) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
+        
         if (optionalPayment.isPresent()) {
             Payment payment = optionalPayment.get();
 
-            // Criar uma nova análise de fraude usando o construtor que aceita parâmetros
-            FraudCheck fraudCheck = new FraudCheck();
-            fraudCheck.setPayment(payment);
-            fraudCheck.setCheckReason(checkReason);
-            fraudCheck.setCheckedAt(ZonedDateTime.now());
-            fraudCheck.setFraudStatus(isFraud ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED);
-            fraudCheck.setRabbitMqMessage(rabbitMqMessage); // Associe a mensagem RabbitMQ se existir
-
-            //System.out.println("Checked At: " + checkedAt);
-
-            // Salva a análise de fraude
-            fraudCheckRepository.save(fraudCheck);
-
-            // Atualizar o status do pagamento
+        // Cria e salva a análise de fraude
+        FraudCheck fraudCheck = new FraudCheck();
+        fraudCheck.setPayment(payment);
+        fraudCheck.setCheckReason(checkReason);
+        fraudCheck.setCheckedAt(ZonedDateTime.now());
+        fraudCheck.setFraudStatus(isFraud ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED);
+        fraudCheck.setRabbitMqMessage(rabbitMqMessage);
+        
+        fraudCheckRepository.save(fraudCheck);
+        
+        if (isFraud) {
+                payment.setPaymentStatus(PaymentStatus.REJECTED);
+            } else {
+                payment.setPaymentStatus(PaymentStatus.APPROVED);
+            }
+            
+            // Atualiza a verificação de fraude associada ao pagamento
             payment.setFraudCheck(fraudCheck);
-            payment.setPaymentStatus(isFraud ? PaymentStatus.REJECTED : PaymentStatus.APPROVED); // Atualiza o status do pagamento
-            paymentRepository.save(payment); // Salva as atualizações do pagamento
-        } else {
-            // Tratar o caso onde o pagamento não foi encontrado, se necessário
-            throw new IllegalArgumentException("Payment not found for ID: " + paymentId);
-        }
+            
+            // Atualiza o pagamento no repositório
+            paymentRepository.save(payment);
+    } else {
+        throw new IllegalArgumentException("Pagamento não encontrado para o ID: " + paymentId);
     }
+}
 }
