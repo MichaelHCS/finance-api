@@ -1,9 +1,8 @@
 package com.apifinance.jpa.controllers;
 
 import com.apifinance.jpa.models.FraudCheck;
-import com.apifinance.jpa.services.FraudCheckService; // Supondo que você tenha um FraudCheckService
+import com.apifinance.jpa.services.FraudCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,17 +12,12 @@ import java.util.List;
 @RequestMapping("/fraud-checks")
 public class FraudCheckController {
 
-    private final FraudCheckService fraudCheckService;
-
     @Autowired
-    public FraudCheckController(FraudCheckService fraudCheckService) {
-        this.fraudCheckService = fraudCheckService;
-    }
+    private FraudCheckService fraudCheckService;
 
     @GetMapping
-    public ResponseEntity<List<FraudCheck>> getAllFraudChecks() {
-        List<FraudCheck> fraudChecks = fraudCheckService.findAll();
-        return ResponseEntity.ok(fraudChecks);
+    public List<FraudCheck> getAllFraudChecks() {
+        return fraudCheckService.findAll();
     }
 
     @GetMapping("/{id}")
@@ -33,19 +27,20 @@ public class FraudCheckController {
     }
 
     @PostMapping
-    public ResponseEntity<FraudCheck> createFraudCheck(@RequestBody FraudCheck fraudCheck) {
-        FraudCheck createdFraudCheck = fraudCheckService.save(fraudCheck);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdFraudCheck);
+    public FraudCheck createFraudCheck(@RequestBody FraudCheck fraudCheck) {
+        return fraudCheckService.save(fraudCheck);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FraudCheck> updateFraudCheck(@PathVariable Long id, @RequestBody FraudCheck fraudCheck) {
-        FraudCheck updatedFraudCheck = fraudCheckService.update(id, fraudCheck);
-        return updatedFraudCheck != null ? ResponseEntity.ok(updatedFraudCheck) : ResponseEntity.notFound().build();
+        fraudCheck.setId(id);
+        FraudCheck updatedFraudCheck = fraudCheckService.save(fraudCheck);
+        return ResponseEntity.ok(updatedFraudCheck);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFraudCheck(@PathVariable Long id) {
-        return fraudCheckService.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        fraudCheckService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,37 +1,23 @@
 package com.apifinance.jpa.controllers;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired; // Supondo que você tenha um PaymentMethodService
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.apifinance.jpa.models.PaymentMethod;
 import com.apifinance.jpa.services.PaymentMethodService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/payment-methods")
 public class PaymentMethodController {
 
-    private final PaymentMethodService paymentMethodService;
-
     @Autowired
-    public PaymentMethodController(PaymentMethodService paymentMethodService) {
-        this.paymentMethodService = paymentMethodService;
-    }
+    private PaymentMethodService paymentMethodService;
 
     @GetMapping
-    public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
-        List<PaymentMethod> paymentMethods = paymentMethodService.findAll();
-        return ResponseEntity.ok(paymentMethods);
+    public List<PaymentMethod> getAllPaymentMethods() {
+        return paymentMethodService.findAll();
     }
 
     @GetMapping("/{id}")
@@ -41,19 +27,20 @@ public class PaymentMethodController {
     }
 
     @PostMapping
-    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
-        PaymentMethod createdPaymentMethod = paymentMethodService.save(paymentMethod);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPaymentMethod);
+    public PaymentMethod createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
+        return paymentMethodService.save(paymentMethod);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PaymentMethod> updatePaymentMethod(@PathVariable Long id, @RequestBody PaymentMethod paymentMethod) {
-        PaymentMethod updatedPaymentMethod = paymentMethodService.update(id, paymentMethod);
-        return updatedPaymentMethod != null ? ResponseEntity.ok(updatedPaymentMethod) : ResponseEntity.notFound().build();
+        paymentMethod.setId(id);
+        PaymentMethod updatedPaymentMethod = paymentMethodService.save(paymentMethod);
+        return ResponseEntity.ok(updatedPaymentMethod);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePaymentMethod(@PathVariable Long id) {
-        return paymentMethodService.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        paymentMethodService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

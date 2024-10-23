@@ -11,7 +11,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
@@ -20,28 +19,26 @@ public class RabbitMqMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Identificador único da mensagem
+    private Long id;  // Identificador único da mensagem
 
-    @Lob
     @Column(name = "message_content", nullable = false)
-    private String messageContent; // Conteúdo da mensagem (JSON ou texto)
+    private String messageContent;  // Conteúdo da mensagem (JSON ou texto)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private RabbitMqMessageStatus status; // Status da mensagem (enviado, processado, erro)
+    private RabbitMqMessageStatus status;  // Status da mensagem (enviado, processado, erro)
 
     @Column(name = "sent_at", nullable = false)
-    private ZonedDateTime sentAt; // Data e hora de envio da mensagem
+    private ZonedDateTime sentAt;  // Data e hora de envio da mensagem
 
-    @Column(name = "processed_at", nullable = true)
-    private ZonedDateTime processedAt; // Data e hora do processamento da mensagem (pode ser nulo)
-
-    // Construtores
-    public RabbitMqMessage() {
-        this.processedAt = ZonedDateTime.now();
+    @Column(name = "processed_at")
+    private ZonedDateTime processedAt;  // Data e hora do processamento da mensagem (pode ser nula)
+    
+    public RabbitMqMessage(){
+        
     }
-
     // Getters e Setters
+
     public Long getId() {
         return id;
     }
@@ -81,16 +78,4 @@ public class RabbitMqMessage {
     public void setProcessedAt(ZonedDateTime processedAt) {
         this.processedAt = processedAt;
     }
-
-    @Override
-    public String toString() {
-        return "RabbitMqMessage{"
-                + "id=" + id
-                + ", messageContent='" + messageContent + '\''
-                + ", status=" + status
-                + ", sentAt=" + sentAt
-                + ", processedAt=" + processedAt
-                + '}';
-    }
-
 }
