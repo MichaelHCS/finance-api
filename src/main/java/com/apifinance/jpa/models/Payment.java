@@ -112,7 +112,7 @@ public class Payment {
         return status;
     }
 
-    public void setPaymentStatus(PaymentStatus status) {
+    public void setStatus(PaymentStatus status) {
         this.status = status;
     }
 

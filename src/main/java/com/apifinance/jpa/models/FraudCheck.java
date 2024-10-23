@@ -36,7 +36,7 @@ public class FraudCheck {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "check_reason", nullable = false)
-    private FraudCheckReason checkReason;
+    private FraudCheckReason fraudReason;
 
     @Column(name = "checked_at", nullable = false)
     private ZonedDateTime checkedAt;
@@ -74,12 +74,12 @@ public class FraudCheck {
         this.fraudStatus = fraudStatus;
     }
 
-    public FraudCheckReason getCheckReason() {
-        return checkReason;
+    public FraudCheckReason getFraudReason() {
+        return fraudReason;
     }
 
-    public void setCheckReason(FraudCheckReason checkReason) {
-        this.checkReason = checkReason;
+    public void setFraudReason(FraudCheckReason fraudReason) {
+        this.fraudReason = fraudReason;
     }
 
     public ZonedDateTime getCheckedAt() {
@@ -104,7 +104,7 @@ public class FraudCheck {
                 + "id=" + id
                 + ", payment=" + payment // Evita carregar toda a entidade de forma preguiçosa
                 + ", fraudStatus=" + fraudStatus
-                + ", checkReason=" + checkReason
+                + ", fraudReason=" + fraudReason
                 + ", checkedAt=" + checkedAt
                 + ", rabbitMqMessage=" + rabbitMqMessage // Evita carregar toda a entidade de forma preguiçosa
                 + '}';

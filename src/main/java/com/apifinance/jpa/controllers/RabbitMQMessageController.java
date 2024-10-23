@@ -1,7 +1,7 @@
 package com.apifinance.jpa.controllers;
 
 import com.apifinance.jpa.models.RabbitMqMessage;
-import com.apifinance.jpa.services.RabbitMqMessageService;
+import com.apifinance.jpa.services.RabbitMqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.List;
 public class RabbitMqMessageController {
 
     @Autowired
-    private RabbitMqMessageService rabbitMqMessageService;
+    private RabbitMqService rabbitMqMessageService;
 
     @GetMapping
     public List<RabbitMqMessage> getAllRabbitMqMessages() {
