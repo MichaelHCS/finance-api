@@ -10,8 +10,12 @@ import java.util.List;
 @Service
 public class PaymentMethodService {
 
+    private final PaymentMethodRepository paymentMethodRepository;
+
     @Autowired
-    private PaymentMethodRepository paymentMethodRepository;
+    public PaymentMethodService(PaymentMethodRepository paymentMethodRepository) {
+        this.paymentMethodRepository = paymentMethodRepository;
+    }
 
     public List<PaymentMethod> findAll() {
         return paymentMethodRepository.findAll();

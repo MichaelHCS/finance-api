@@ -23,24 +23,23 @@ public class TransactionLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Identificador único do log
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
-    private Payment payment; // Pagamento associado (FK)
+    private Payment payment;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
-    private TransactionAction action; // Ação realizada (ex: "Pagamento criado", "Fraude detectada")
+    private TransactionAction action;
 
     @Column(name = "timestamp", nullable = false)
-    private ZonedDateTime timestamp; // Data e hora do log
+    private ZonedDateTime timestamp;
 
     @Lob
     @Column(name = "details", nullable = true)
-    private String details; // Detalhes adicionais sobre a ação
+    private String details;
 
-    // Construtores
     public TransactionLog() {
     }
 
@@ -51,7 +50,6 @@ public class TransactionLog {
         this.details = details;
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }

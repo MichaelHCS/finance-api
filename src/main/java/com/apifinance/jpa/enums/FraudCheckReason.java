@@ -23,9 +23,9 @@ public enum FraudCheckReason {
     public static FraudCheckReason fromValue(String value) {
         for (FraudCheckReason reason : FraudCheckReason.values()) {
             if (reason.name().equalsIgnoreCase(value)) {
-                return reason; // Retorna o enum correspondente ao valor string
+                return reason; 
             }
         }
-        throw new IllegalArgumentException("Unknown value: " + value); // Lança exceção se o valor não for reconhecido
+        throw new IllegalArgumentException("Unknown value: " + value);
     }
 }

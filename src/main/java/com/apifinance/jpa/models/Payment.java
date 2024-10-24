@@ -3,7 +3,7 @@ package com.apifinance.jpa.models;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
-import com.apifinance.jpa.enums.FraudCheckReason;
+//import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
 
@@ -31,11 +31,11 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer; // Supondo que já tenha uma entidade Customer
+    private Customer customer;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
-    private PaymentType paymentMethod;
+    private PaymentType paymentType;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
@@ -45,7 +45,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private PaymentStatus status;
+    private PaymentStatus paymentStatus;
 
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt;
@@ -55,19 +55,24 @@ public class Payment {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fraud_check_id")
-    private FraudCheck fraudCheck; // Supondo que você tenha uma entidade FraudCheck
+    private FraudCheck fraudCheck;
 
-    @Transient // Adiciona esta anotação para que a coluna não seja persistida
-    private FraudCheckReason checkReason; // Novo campo para o motivo da verificação de fraude
+    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    private PaymentMethod paymentMethod; 
 
-    // Construtores, getters e setters
+    @Transient
+    @OneToOne(fetch = FetchType.LAZY)
+    private RabbitMqMessage rabbitMqMessage;
+    //@Transient
+    //private FraudCheckReason checkReason;
+
     public Payment() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
 
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -84,12 +89,12 @@ public class Payment {
         this.customer = customer;
     }
 
-    public PaymentType getPaymentMethod() {
-        return paymentMethod;
+    public PaymentType getPaymentType() {
+        return paymentType;
     }
 
-    public void setPaymentMethod(PaymentType paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void setPaymentType(PaymentType paymentType) {
+        this.paymentType = paymentType;
     }
 
     public BigDecimal getAmount() {
@@ -106,14 +111,6 @@ public class Payment {
 
     public void setCurrency(String currency) {
         this.currency = currency;
-    }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
     }
 
     public ZonedDateTime getCreatedAt() {
@@ -140,27 +137,55 @@ public class Payment {
         this.fraudCheck = fraudCheck;
     }
 
-    public FraudCheckReason getCheckReason() {
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+    /*public FraudCheckReason getCheckReason() {
         return checkReason;
     }
 
     public void setCheckReason(FraudCheckReason checkReason) {
         this.checkReason = checkReason;
     }
+    */
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public RabbitMqMessage getRabbitMqMessage() {
+        return rabbitMqMessage;
+    }
+
+    public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
+        this.rabbitMqMessage = rabbitMqMessage;
+    }
 
     @Override
     public String toString() {
         return "Payment{"
                 + "id=" + id
-                + ", customer=" + (customer != null ? customer.getId() : "null") // Evita carregar toda a entidade Customer
-                + ", paymentMethod=" + paymentMethod
+                + ", customer=" + (customer != null ? customer.getId() : "null")
+                + ", paymentMethod=" + paymentType
                 + ", amount=" + amount
                 + ", currency='" + currency + '\''
-                + ", status=" + status
+                + ", status=" + paymentStatus
                 + ", createdAt=" + createdAt
                 + ", updatedAt=" + updatedAt
-                + ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : "null") // Evita carregar toda a entidade FraudCheck
+                + ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : "null")
                 + '}';
+    
+
     }
+
+   
 
 }

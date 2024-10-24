@@ -1,6 +1,8 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
+//import java.util.ArrayList;
+import java.util.List;
 
 import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
@@ -8,10 +10,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+//import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+//import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "rabbitmq_message")
@@ -33,11 +39,13 @@ public class RabbitMqMessage {
 
     @Column(name = "processed_at")
     private ZonedDateTime processedAt;  // Data e hora do processamento da mensagem (pode ser nula)
-    
-    public RabbitMqMessage(){
-        
+
+    @OneToMany(mappedBy = "rabbitMqMessage", fetch = FetchType.LAZY)
+    private List<Payment> payments;
+
+    public RabbitMqMessage() {
+
     }
-    // Getters e Setters
 
     public Long getId() {
         return id;
@@ -78,4 +86,14 @@ public class RabbitMqMessage {
     public void setProcessedAt(ZonedDateTime processedAt) {
         this.processedAt = processedAt;
     }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
+    
 }

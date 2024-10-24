@@ -24,9 +24,9 @@ public enum RabbitMqMessageStatus {
     public static RabbitMqMessageStatus fromValue(String value) {
         for (RabbitMqMessageStatus status : RabbitMqMessageStatus.values()) {
             if (status.name().equalsIgnoreCase(value)) {
-                return status; // Retorna o enum correspondente ao valor string
+                return status; 
             }
         }
-        throw new IllegalArgumentException("Unknown value: " + value); // Lança exceção se o valor não for reconhecido
+        throw new IllegalArgumentException("Unknown value: " + value); 
     }
 }

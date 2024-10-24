@@ -11,6 +11,7 @@ import com.apifinance.jpa.enums.FraudCheckStatus;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
+//import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
 
@@ -31,6 +32,26 @@ public class FraudCheckService {
         return fraudCheckRepository.findById(id).orElse(null);
     }
 
+   
+    public void analyzeFraud(Payment payment, boolean isFraudulent, FraudCheckReason checkReason) {
+        
+        if (isFraudulent) {
+            payment.setPaymentStatus(PaymentStatus.REJECTED); 
+        } else {
+            payment.setPaymentStatus(PaymentStatus.APPROVED); 
+        }
+    
+        paymentRepository.save(payment);
+    
+        FraudCheck fraudCheck = new FraudCheck();
+        fraudCheck.setPayment(payment);
+        fraudCheck.setCheckedAt(ZonedDateTime.now()); 
+        fraudCheck.setFraudStatus(isFraudulent ? FraudCheckStatus.APPROVED: FraudCheckStatus.REJECTED);
+        fraudCheck.setFraudReason(checkReason);
+    
+        fraudCheckRepository.save(fraudCheck);
+    }
+
     public FraudCheck save(FraudCheck fraudCheck) {
         return fraudCheckRepository.save(fraudCheck);
     }
@@ -39,34 +60,6 @@ public class FraudCheckService {
         fraudCheckRepository.deleteById(id);
     }
 
-    public void analyzeFraud(Long paymentId, FraudCheckStatus fraudStatus, FraudCheckReason fraudReason) {
-        // Busca o pagamento correspondente
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Pagamento não encontrado para o ID: " + paymentId));
-
-        // Cria um novo registro de análise de fraude
-        FraudCheck fraudCheck = new FraudCheck();
-        fraudCheck.setPayment(payment);
-        fraudCheck.setFraudStatus(fraudStatus);
-        fraudCheck.setFraudReason(fraudReason);
-        fraudCheck.setCheckedAt(ZonedDateTime.now()); // Define a data/hora da análise
-
-        // Salva o registro de análise de fraude na tabela fraud_check
-        fraudCheckRepository.save(fraudCheck);
-
-        // Atualiza o status do pagamento com base no resultado da análise de fraude
-        // Atualiza o status do pagamento com base no resultado da análise de fraude
-        if (fraudStatus == FraudCheckStatus.APPROVED) { // Usando a variável fraudStatus
-            payment.setStatus(PaymentStatus.APPROVED); // Define o status como "Aprovado"
-        } else if (fraudStatus == FraudCheckStatus.REJECTED) { // Usando a variável fraudStatus
-            payment.setStatus(PaymentStatus.REJECTED); // Define o status como "Rejeitado"
-        }
-        
-
-        // Salva a atualização do pagamento na tabela payment
-        paymentRepository.save(payment);
-
-    }
-     
-
 }
+
+

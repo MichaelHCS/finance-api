@@ -27,8 +27,10 @@ public class PaymentController {
     }
 
     @PostMapping
-    public Payment createPayment(@RequestBody Payment payment) {
-        return paymentService.save(payment);
+    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
+        Payment createdPayment = paymentService.save(payment);  
+        return ResponseEntity.ok(createdPayment);
+
     }
 
     @PutMapping("/{id}")

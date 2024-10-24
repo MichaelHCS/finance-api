@@ -22,13 +22,12 @@ public class PaymentMethod {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private PaymentType type; // Tipo de pagamento (Cartão de crédito, Boleto, etc.)
+    private PaymentType type; 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "details", nullable = false)
-    private PaymentMethodDetails details; // Detalhes do pagamento (número do cartão, banco)
+    private PaymentMethodDetails details; 
 
-    // Construtores
     public PaymentMethod() {
         
     }
@@ -38,7 +37,6 @@ public class PaymentMethod {
         this.details = details;
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }

@@ -10,8 +10,12 @@ import java.util.List;
 @Service
 public class TransactionLogService {
 
+    private final TransactionLogRepository transactionLogRepository;
+
     @Autowired
-    private TransactionLogRepository transactionLogRepository;
+    public TransactionLogService(TransactionLogRepository transactionLogRepository) {
+        this.transactionLogRepository = transactionLogRepository;
+    }
 
     public List<TransactionLog> findAll() {
         return transactionLogRepository.findAll();

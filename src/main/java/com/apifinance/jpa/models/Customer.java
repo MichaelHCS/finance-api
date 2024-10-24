@@ -1,14 +1,16 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
-//import java.util.List;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -39,12 +41,14 @@ public class Customer {
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt;
 
-    public Customer() {
-        this.createdAt = ZonedDateTime.now(); // Define a data e hora atual como valor padrão
+    @Transient
+    @OneToMany
+    private List<Payment> payments;
 
+    public Customer() {
+        this.createdAt = ZonedDateTime.now();
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -85,6 +89,14 @@ public class Customer {
         this.createdAt = createdAt;
     }
 
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
     @Override
     public String toString() {
         return "Customer{"
@@ -95,4 +107,5 @@ public class Customer {
                 + ", createdAt=" + createdAt
                 + '}';
     }
+
 }

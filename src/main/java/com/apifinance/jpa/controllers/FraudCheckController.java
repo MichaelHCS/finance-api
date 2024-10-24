@@ -1,12 +1,17 @@
 package com.apifinance.jpa.controllers;
 
+//import com.apifinance.jpa.enums.FraudCheckReason;
+//import com.apifinance.jpa.enums.FraudCheckStatus;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.services.FraudCheckService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+//import com.apifinance.jpa.models.RabbitMqMessage;
 
 @RestController
 @RequestMapping("/fraud-checks")
@@ -27,9 +32,7 @@ public class FraudCheckController {
     }
 
     @PostMapping
-    public FraudCheck createFraudCheck(@RequestBody FraudCheck fraudCheck) {
-        return fraudCheckService.save(fraudCheck);
-    }
+    
 
     @PutMapping("/{id}")
     public ResponseEntity<FraudCheck> updateFraudCheck(@PathVariable Long id, @RequestBody FraudCheck fraudCheck) {
