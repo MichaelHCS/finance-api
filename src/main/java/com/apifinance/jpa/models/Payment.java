@@ -61,8 +61,7 @@ public class Payment {
     @ManyToOne(fetch = FetchType.LAZY)
     private PaymentMethod paymentMethod; 
 
-    @Transient
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private RabbitMqMessage rabbitMqMessage;
     //@Transient
     //private FraudCheckReason checkReason;

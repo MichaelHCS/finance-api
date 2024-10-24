@@ -1,78 +1,95 @@
 package com.apifinance.jpa.services;
 
-import com.apifinance.jpa.configrabbitmq.RabbitMqConfig;
-import com.apifinance.jpa.enums.PaymentStatus;
-import com.apifinance.jpa.enums.RabbitMqMessageStatus;
-import com.apifinance.jpa.models.Payment;
-import com.apifinance.jpa.models.RabbitMqMessage;
-import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
-import com.apifinance.jpa.repositories.TransactionLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.ZonedDateTime;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.apifinance.jpa.enums.PaymentStatus;
+import com.apifinance.jpa.enums.RabbitMqMessageStatus;
+import com.apifinance.jpa.models.Customer;
+import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.RabbitMqMessage;
+import com.apifinance.jpa.repositories.CustomerRepository;
+import com.apifinance.jpa.repositories.PaymentRepository;
+import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
 
 @Service
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final RabbitMqMessageRepository rabbitMqMessageRepository;
     private final RabbitMqService rabbitMqService;
-    //private final TransactionLogRepository transactionLogRepository;
+    private final RabbitMqMessageRepository rabbitmqMessageRepository;
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    public PaymentService(PaymentRepository paymentRepository,
-                          RabbitMqMessageRepository rabbitMqMessageRepository,
-                          RabbitMqService rabbitMqService,
-                          TransactionLogRepository transactionLogRepository) {
+    // Injeção de dependências
+    public PaymentService(PaymentRepository paymentRepository, 
+                          RabbitMqService rabbitMqService, 
+                          RabbitMqMessageRepository rabbitmqMessageRepository,
+                          CustomerRepository customerRepository) {
         this.paymentRepository = paymentRepository;
-        this.rabbitMqMessageRepository = rabbitMqMessageRepository;
         this.rabbitMqService = rabbitMqService;
-        //this.transactionLogRepository = transactionLogRepository;
+        this.rabbitmqMessageRepository = rabbitmqMessageRepository;
+        this.customerRepository = customerRepository;
     }
 
+    // Método para criar um pagamento associado a um cliente
+    public Payment createPayment(Payment payment, Long customerId) {
+        if (payment == null) {
+            throw new IllegalArgumentException("Payment cannot be null");
+        }
+
+        // Verificar se o cliente existe
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found with id: " + customerId));
+
+        // Associar o cliente ao pagamento
+        payment.setCustomer(customer);
+        payment.setPaymentStatus(PaymentStatus.PENDING);
+        Payment savedPayment = paymentRepository.save(payment);
+
+        // Publicar a mensagem de verificação de fraude
+        publishFraudCheckMessage(savedPayment);
+        return savedPayment;
+    }
+
+    // Método para buscar todos os pagamentos
     public List<Payment> findAll() {
         return paymentRepository.findAll();
     }
 
+    // Método para buscar um pagamento por ID
     public Payment findById(Long id) {
         return paymentRepository.findById(id).orElse(null);
     }
 
-    public void createdPayment(Payment payment) {
-        
-        payment.setCreatedAt(ZonedDateTime.now());
-        payment.setPaymentStatus(PaymentStatus.PENDING); 
-        
-        paymentRepository.save(payment);
-        
-        String messageContent = createPaymentMessage(payment);
-    
-        rabbitMqService.sendMessage(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, messageContent);
-        
-        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
-        rabbitMqMessage.setMessageContent(messageContent);
-        rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT); // Enum correto
-        rabbitMqMessage.setSentAt(ZonedDateTime.now());
-        //rabbitMqMessage.setPayments(payments); // Relaciona o pagamento com a mensagem
-    
-        // 6. Salva o registro da mensagem no banco de dados
-        rabbitMqMessageRepository.save(rabbitMqMessage);
-    }
-
+    // Método para salvar (atualizar) um pagamento
     public Payment save(Payment payment) {
         return paymentRepository.save(payment);
     }
 
+    // Método para deletar um pagamento por ID
     public void deleteById(Long id) {
         paymentRepository.deleteById(id);
     }
 
-    // Método auxiliar para criar o conteúdo da mensagem de pagamento
-    private String createPaymentMessage(Payment payment) {
-        // Aqui você pode implementar a lógica para converter o objeto Payment em uma string JSON, XML ou outro formato de mensagem
-        return "Pagamento ID: " + payment.getId() + " - Status: " + payment.getPaymentStatus();
+    // Método para publicar a mensagem de verificação de fraude
+    private void publishFraudCheckMessage(Payment payment) {
+        String messageContent = createFraudCheckMessage(payment);
+        String exchange = "fraud_check_exchange";
+        String routingKey = "fraud.check";
+        rabbitMqService.sendMessage(exchange, routingKey, messageContent);
+
+        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
+        rabbitMqMessage.setMessageContent(messageContent);
+        rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
+        rabbitMqMessage.setProcessedAt(ZonedDateTime.now());
+        rabbitMqMessage.setSentAt(ZonedDateTime.now());
+        rabbitmqMessageRepository.save(rabbitMqMessage);
+    }
+
+    // Método para criar a mensagem de verificação de fraude
+    private String createFraudCheckMessage(Payment payment) {
+        return "Verificar fraude para pagamento ID: " + payment.getId();
     }
 }
