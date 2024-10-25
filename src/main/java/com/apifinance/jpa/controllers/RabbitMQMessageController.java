@@ -12,35 +12,42 @@ import java.util.List;
 @RequestMapping("/rabbitmq-messages")
 public class RabbitMqMessageController {
 
-    @Autowired
-    private RabbitMqService rabbitMqMessageService;
+    private final RabbitMqService rabbitMqService;
 
-    @GetMapping
-    public List<RabbitMqMessage> getAllRabbitMqMessages() {
-        return rabbitMqMessageService.findAll();
+    @Autowired
+    public RabbitMqMessageController(RabbitMqService rabbitMqService) {
+        this.rabbitMqService = rabbitMqService;
     }
 
+    // Endpoint para obter todas as mensagens
+    @GetMapping
+    public List<RabbitMqMessage> getAllRabbitMqMessages() {
+        return rabbitMqService.findAll();
+    }
+
+    // Endpoint para obter uma mensagem por ID
     @GetMapping("/{id}")
     public ResponseEntity<RabbitMqMessage> getRabbitMqMessageById(@PathVariable Long id) {
-        RabbitMqMessage rabbitMqMessage = rabbitMqMessageService.findById(id);
+        RabbitMqMessage rabbitMqMessage = rabbitMqService.findById(id);
         return rabbitMqMessage != null ? ResponseEntity.ok(rabbitMqMessage) : ResponseEntity.notFound().build();
     }
 
+    // Endpoint para publicar uma nova mensagem e salvar no repositório
     @PostMapping
-    public RabbitMqMessage createRabbitMqMessage(@RequestBody RabbitMqMessage rabbitMqMessage) {
-        return rabbitMqMessageService.save(rabbitMqMessage);
+    public ResponseEntity<RabbitMqMessage> createRabbitMqMessage(@RequestParam String exchange, 
+                                                                  @RequestParam String routingKey, 
+                                                                  @RequestBody String messageContent) {
+        // Publicar a mensagem
+        rabbitMqService.publishMessage(exchange, routingKey, messageContent);
+        
+        // Retornar uma resposta indicando que a mensagem foi publicada
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RabbitMqMessage> updateRabbitMqMessage(@PathVariable Long id, @RequestBody RabbitMqMessage rabbitMqMessage) {
-        rabbitMqMessage.setId(id);
-        RabbitMqMessage updatedRabbitMqMessage = rabbitMqMessageService.save(rabbitMqMessage);
-        return ResponseEntity.ok(updatedRabbitMqMessage);
-    }
-
+    // Endpoint para deletar uma mensagem por ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRabbitMqMessage(@PathVariable Long id) {
-        rabbitMqMessageService.deleteById(id);
+        rabbitMqService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

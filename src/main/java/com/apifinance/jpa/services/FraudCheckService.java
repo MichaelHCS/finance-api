@@ -6,12 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckStatus;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
-//import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
 
@@ -32,26 +30,6 @@ public class FraudCheckService {
         return fraudCheckRepository.findById(id).orElse(null);
     }
 
-   
-    public void analyzeFraud(Payment payment, boolean isFraudulent, FraudCheckReason checkReason) {
-        
-        if (isFraudulent) {
-            payment.setPaymentStatus(PaymentStatus.REJECTED); 
-        } else {
-            payment.setPaymentStatus(PaymentStatus.APPROVED); 
-        }
-    
-        paymentRepository.save(payment);
-    
-        FraudCheck fraudCheck = new FraudCheck();
-        fraudCheck.setPayment(payment);
-        fraudCheck.setCheckedAt(ZonedDateTime.now()); 
-        fraudCheck.setFraudStatus(isFraudulent ? FraudCheckStatus.APPROVED: FraudCheckStatus.REJECTED);
-        fraudCheck.setFraudReason(checkReason);
-    
-        fraudCheckRepository.save(fraudCheck);
-    }
-
     public FraudCheck save(FraudCheck fraudCheck) {
         return fraudCheckRepository.save(fraudCheck);
     }
@@ -60,6 +38,22 @@ public class FraudCheckService {
         fraudCheckRepository.deleteById(id);
     }
 
+    public void analyzeFraud(Long id, FraudCheck fraudCheck) {
+        FraudCheck existingFraudCheck = findById(id);
+        if (existingFraudCheck != null) {
+            Payment payment = existingFraudCheck.getPayment();
+            boolean isFraudulent = fraudCheck.getFraudStatus() == FraudCheckStatus.REJECTED;
+
+            // Atualiza o status do pagamento
+            payment.setPaymentStatus(isFraudulent ? PaymentStatus.REJECTED : PaymentStatus.APPROVED);
+            paymentRepository.save(payment);
+
+            // Atualiza os detalhes de fraude
+            existingFraudCheck.setCheckedAt(ZonedDateTime.now());
+            existingFraudCheck.setFraudStatus(isFraudulent ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED);
+            existingFraudCheck.setFraudReason(fraudCheck.getFraudReason());
+
+            fraudCheckRepository.save(existingFraudCheck);
+        }
+    }
 }
-
-

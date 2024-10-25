@@ -25,15 +25,19 @@ public class PaymentController {
     }
 
     // Endpoint para criar um pagamento associado a um cliente
-    @PostMapping("/{id}")
-    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment, @PathVariable Long customerId) {
-        try {
-            Payment createdPayment = paymentService.createPayment(payment, customerId);
-            return new ResponseEntity<>(createdPayment, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping
+    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
+    try {
+        // Aqui você deve obter o customerId do objeto Payment, 
+        // considerando que o Payment já tem o Customer associado
+        Long customerId = payment.getCustomer().getId(); 
+        Payment createdPayment = paymentService.createPayment(payment, customerId);
+        return new ResponseEntity<>(createdPayment, HttpStatus.CREATED);
+    } catch (IllegalArgumentException e) {
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
+}
+
 
     // Endpoint para buscar todos os pagamentos
     @GetMapping

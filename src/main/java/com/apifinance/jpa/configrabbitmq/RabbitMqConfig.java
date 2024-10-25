@@ -14,6 +14,7 @@ public class RabbitMqConfig {
     public static final String EXCHANGE = "paymentExchange";
     public static final String ROUTING_KEY = "paymentRoutingKey";
 
+    // Configuração para pagamentos
     @Bean
     public Queue paymentQueue() {
         return new Queue(PAYMENT_QUEUE);

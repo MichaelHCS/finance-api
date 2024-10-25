@@ -1,35 +1,29 @@
 package com.apifinance.jpa.services;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.apifinance.jpa.configrabbitmq.RabbitMqConfig;
 import com.apifinance.jpa.enums.PaymentStatus;
-import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 import com.apifinance.jpa.models.Customer;
 import com.apifinance.jpa.models.Payment;
-import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.CustomerRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
-import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
 
 @Service
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final RabbitMqService rabbitMqService;
-    private final RabbitMqMessageRepository rabbitmqMessageRepository;
+    private final RabbitMqService rabbitMqService; // Dependência do RabbitMqService
     private final CustomerRepository customerRepository;
 
     // Injeção de dependências
     public PaymentService(PaymentRepository paymentRepository, 
                           RabbitMqService rabbitMqService, 
-                          RabbitMqMessageRepository rabbitmqMessageRepository,
                           CustomerRepository customerRepository) {
         this.paymentRepository = paymentRepository;
         this.rabbitMqService = rabbitMqService;
-        this.rabbitmqMessageRepository = rabbitmqMessageRepository;
         this.customerRepository = customerRepository;
     }
 
@@ -48,8 +42,8 @@ public class PaymentService {
         payment.setPaymentStatus(PaymentStatus.PENDING);
         Payment savedPayment = paymentRepository.save(payment);
 
-        // Publicar a mensagem de verificação de fraude
-        publishFraudCheckMessage(savedPayment);
+        // Publicar a mensagem de pagamento
+        publishPaymentMessage(savedPayment);
         return savedPayment;
     }
 
@@ -73,23 +67,16 @@ public class PaymentService {
         paymentRepository.deleteById(id);
     }
 
-    // Método para publicar a mensagem de verificação de fraude
-    private void publishFraudCheckMessage(Payment payment) {
-        String messageContent = createFraudCheckMessage(payment);
-        String exchange = "fraud_check_exchange";
-        String routingKey = "fraud.check";
-        rabbitMqService.sendMessage(exchange, routingKey, messageContent);
+    private void publishPaymentMessage(Payment payment) {
+        String messageContent = createPaymentMessage(payment);
+        String exchange = RabbitMqConfig.EXCHANGE;
+        String routingKey = RabbitMqConfig.ROUTING_KEY;
 
-        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
-        rabbitMqMessage.setMessageContent(messageContent);
-        rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
-        rabbitMqMessage.setProcessedAt(ZonedDateTime.now());
-        rabbitMqMessage.setSentAt(ZonedDateTime.now());
-        rabbitmqMessageRepository.save(rabbitMqMessage);
+        rabbitMqService.publishMessage(exchange, routingKey, messageContent);
     }
 
-    // Método para criar a mensagem de verificação de fraude
-    private String createFraudCheckMessage(Payment payment) {
-        return "Verificar fraude para pagamento ID: " + payment.getId();
+    // Método para criar a mensagem de pagamento
+    private String createPaymentMessage(Payment payment) {
+        return "Pagamento criado com ID: " + payment.getId();
     }
 }

@@ -97,6 +97,12 @@ public class Customer {
         this.payments = payments;
     }
 
+    public boolean isNewUser() {
+        // Define o critério para um cliente ser considerado novo
+        ZonedDateTime thirtyDaysAgo = ZonedDateTime.now().minusDays(30);
+        return createdAt.isAfter(thirtyDaysAgo);
+    }
+
     @Override
     public String toString() {
         return "Customer{"
