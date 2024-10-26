@@ -1,5 +1,6 @@
 package com.apifinance.jpa.models;
 
+import java.time.ZonedDateTime;
 import com.apifinance.jpa.enums.TransactionAction;
 
 import jakarta.persistence.Column;
@@ -11,11 +12,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "transaction_log")
@@ -36,7 +34,6 @@ public class TransactionLog {
     @Column(name = "timestamp", nullable = false)
     private ZonedDateTime timestamp;
 
-    @Lob
     @Column(name = "details", nullable = true)
     private String details;
 
@@ -48,6 +45,7 @@ public class TransactionLog {
         this.action = action;
         this.timestamp = timestamp;
         this.details = details;
+        
     }
 
     public Long getId() {
@@ -90,6 +88,15 @@ public class TransactionLog {
         this.details = details;
     }
 
+
+    // Método para gerar uma mensagem de log detalhada
+    public String generateLogMessage() {
+        return String.format("Ação: %s, Detalhes: %s, Data e Hora: %s",
+                action != null ? action : "Ação desconhecida",
+                details != null ? details : "Detalhes não disponíveis",
+                timestamp != null ? timestamp : "Data desconhecida");
+    }
+
     @Override
     public String toString() {
         return "TransactionLog{"
@@ -100,5 +107,4 @@ public class TransactionLog {
                 + ", details='" + details + '\''
                 + '}';
     }
-
 }

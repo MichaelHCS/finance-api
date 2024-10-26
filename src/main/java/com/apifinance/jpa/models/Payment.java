@@ -3,7 +3,6 @@ package com.apifinance.jpa.models;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
-//import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
 
@@ -37,7 +36,7 @@ public class Payment {
     @Column(name = "payment_method", nullable = false)
     private PaymentType paymentType;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "amount", precision = 10, scale = 2) // para valores monetários
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false)
@@ -59,7 +58,7 @@ public class Payment {
 
     @Transient
     @ManyToOne(fetch = FetchType.LAZY)
-    private PaymentMethod paymentMethod; 
+    private PaymentMethod paymentMethod;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private RabbitMqMessage rabbitMqMessage;
@@ -143,6 +142,7 @@ public class Payment {
     public void setPaymentStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;
     }
+
     /*public FraudCheckReason getCheckReason() {
         return checkReason;
     }
@@ -150,7 +150,7 @@ public class Payment {
     public void setCheckReason(FraudCheckReason checkReason) {
         this.checkReason = checkReason;
     }
-    */
+     */
 
     public PaymentMethod getPaymentMethod() {
         return paymentMethod;
@@ -181,10 +181,6 @@ public class Payment {
                 + ", updatedAt=" + updatedAt
                 + ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : "null")
                 + '}';
-    
-
     }
-
-   
 
 }

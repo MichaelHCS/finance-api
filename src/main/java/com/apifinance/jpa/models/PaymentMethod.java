@@ -5,8 +5,6 @@ import com.apifinance.jpa.enums.PaymentType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,11 +18,9 @@ public class PaymentMethod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Identificador único do método de pagamento
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private PaymentType type; 
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "details", nullable = false)
     private PaymentMethodDetails details; 
 

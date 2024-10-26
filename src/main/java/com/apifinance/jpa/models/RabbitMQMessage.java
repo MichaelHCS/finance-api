@@ -8,8 +8,6 @@ import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,7 +28,6 @@ public class RabbitMqMessage {
     @Column(name = "message_content", nullable = false)
     private String messageContent;  // Conteúdo da mensagem (JSON ou texto)
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private RabbitMqMessageStatus status;  // Status da mensagem (enviado, processado, erro)
 
