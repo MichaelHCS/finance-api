@@ -80,8 +80,6 @@ public class PaymentService {
         logger.info("Transaction log created for payment ID: {}", payment.getId());
     }
     
-
-
     public List<Payment> findAll() {
         return paymentRepository.findAll();
     }

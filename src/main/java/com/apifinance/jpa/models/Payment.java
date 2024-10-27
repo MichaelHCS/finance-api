@@ -2,23 +2,9 @@ package com.apifinance.jpa.models;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "payments")
@@ -36,7 +22,7 @@ public class Payment {
     @Column(name = "payment_method", nullable = false)
     private PaymentType paymentType;
 
-    @Column(name = "amount", precision = 10, scale = 2) 
+    @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false)
@@ -56,18 +42,13 @@ public class Payment {
     @JoinColumn(name = "fraud_check_id")
     private FraudCheck fraudCheck;
 
-    @Transient
-    @ManyToOne(fetch = FetchType.LAZY)
-    private PaymentMethod paymentMethod;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private RabbitMqMessage rabbitMqMessage;
-    
+    //@ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "rabbitmq_message")
+    //private RabbitMqMessage rabbitMqMessage;
 
     public Payment() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
-
     }
 
     public Long getId() {
@@ -142,30 +123,13 @@ public class Payment {
         this.paymentStatus = paymentStatus;
     }
 
-    /*public FraudCheckReason getCheckReason() {
-        return checkReason;
-    }
+    //public RabbitMqMessage getRabbitMqMessage() {
+    //    return rabbitMqMessage;
+    //}
 
-    public void setCheckReason(FraudCheckReason checkReason) {
-        this.checkReason = checkReason;
-    }
-     */
-
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
-    public RabbitMqMessage getRabbitMqMessage() {
-        return rabbitMqMessage;
-    }
-
-    public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
-        this.rabbitMqMessage = rabbitMqMessage;
-    }
+    //public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
+    //    this.rabbitMqMessage = rabbitMqMessage;
+    //}
 
     @Override
     public String toString() {
@@ -179,7 +143,7 @@ public class Payment {
                 + ", createdAt=" + createdAt
                 + ", updatedAt=" + updatedAt
                 + ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : "null")
+                //+ ", rabbitmqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null")
                 + '}';
     }
-
 }
