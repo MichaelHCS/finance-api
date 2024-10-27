@@ -36,7 +36,7 @@ public class Payment {
     @Column(name = "payment_method", nullable = false)
     private PaymentType paymentType;
 
-    @Column(name = "amount", precision = 10, scale = 2) // para valores monetários
+    @Column(name = "amount", precision = 10, scale = 2) 
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false)
@@ -62,8 +62,7 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private RabbitMqMessage rabbitMqMessage;
-    //@Transient
-    //private FraudCheckReason checkReason;
+    
 
     public Payment() {
         this.createdAt = ZonedDateTime.now();

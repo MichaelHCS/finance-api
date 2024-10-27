@@ -1,8 +1,7 @@
 package com.apifinance.jpa.enums;
 
-import com.apifinance.jpa.models.Payment;
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import com.apifinance.jpa.models.Payment;
 
 public enum TransactionLogDetails {
 
@@ -15,17 +14,14 @@ public enum TransactionLogDetails {
             try {
                 BigDecimal paymentAmount = payment.getAmount() != null ? payment.getAmount() : BigDecimal.ZERO;
                 String paymentCurrency = payment.getCurrency() != null ? payment.getCurrency() : "Moeda desconhecida";
-                String paymentCreatedAt = payment.getCreatedAt() != null ? 
-                    payment.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Data desconhecida";
                 String paymentTypeDescription = payment.getPaymentType() != null ? 
-                    payment.getPaymentType().getDescription() : "Tipo de pagamento desconhecido";
+                    payment.getPaymentType().getDescription() : "Método de pagamento desconhecido";
 
                 return String.format(
-                    "Registro de pagamento: Valor %.2f %s processado via %s na data %s.",
+                    "Registro de transação: montante de %.2f %s processado por meio do método '%s'.",
                     paymentAmount,
                     paymentCurrency,
-                    paymentTypeDescription,
-                    paymentCreatedAt
+                    paymentTypeDescription
                 );
             } catch (Exception e) {
                 return "Erro ao formatar detalhes do pagamento: " + e.getMessage();
@@ -40,29 +36,24 @@ public enum TransactionLogDetails {
                 return "O objeto Payment é nulo";
             }
             try {
-                // Obtenha a descrição do motivo
                 String reasonDescription = (reason != null && reason.getDescription() != null)
                     ? reason.getDescription()
                     : "Nenhum motivo fornecido";
-    
-                // Obtenha os detalhes do pagamento
+
                 BigDecimal paymentAmount = payment.getAmount() != null ? payment.getAmount() : BigDecimal.ZERO;
                 String paymentCurrency = payment.getCurrency() != null ? payment.getCurrency() : "Moeda desconhecida";
-                String paymentCreatedAt = payment.getCreatedAt() != null ? payment.getCreatedAt().toLocalDate().toString() : "Data desconhecida"; // Apenas a data
                 
                 return String.format(
-                    "Registro de Fraude Detectada: Montante de %.2f %s, Causa: %s, Data da Transação: %s.",
+                    "Registro de fraude detectada: montante de %.2f %s, motivo: %s.",
                     paymentAmount,
                     paymentCurrency,
-                    reasonDescription,
-                    paymentCreatedAt
+                    reasonDescription
                 );
             } catch (Exception e) {
                 return "Erro ao formatar detalhes de fraude: " + e.getMessage();
             }
         }
     };
-    
 
     public abstract String getDetails(Payment payment, FraudCheckReason reason);
 }
