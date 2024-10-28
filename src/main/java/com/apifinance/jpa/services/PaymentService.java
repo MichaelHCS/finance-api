@@ -28,15 +28,18 @@ public class PaymentService {
     private final RabbitMqService rabbitMqService;
     private final CustomerRepository customerRepository;
     private final TransactionLogRepository transactionLogRepository;
+    private final FraudCheckService fraudCheckService;
 
     public PaymentService(PaymentRepository paymentRepository,
                           RabbitMqService rabbitMqService,
                           CustomerRepository customerRepository,
-                          TransactionLogRepository transactionLogRepository) {
+                          TransactionLogRepository transactionLogRepository, 
+                          FraudCheckService fraudCheckService) {
         this.paymentRepository = paymentRepository;
         this.rabbitMqService = rabbitMqService;
         this.customerRepository = customerRepository;
         this.transactionLogRepository = transactionLogRepository;
+        this.fraudCheckService = fraudCheckService;
     }
 
     @Transactional
