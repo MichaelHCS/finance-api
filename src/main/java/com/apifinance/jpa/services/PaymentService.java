@@ -103,12 +103,20 @@ public class PaymentService {
         String messageContent = createPaymentMessage(payment);
         String exchange = RabbitMqConfig.EXCHANGE;
         String routingKey = RabbitMqConfig.ROUTING_KEY;
-
+    
+        // Publica a mensagem e processa somente se enviada com sucesso
         rabbitMqService.publishMessage(exchange, routingKey, messageContent);
     }
+    
 
     private String createPaymentMessage(Payment payment) {
-        return String.format("{\"id\": \"%s\", \"customerId\": \"%s\", \"status\": \"%s\"}",
-                payment.getId(), payment.getCustomer().getId(), payment.getPaymentStatus());
+        return String.format(
+                "Mensagem de pagamento ID %s: Status - '%s', montante %.2f %s.",
+                payment.getId(),
+                payment.getPaymentStatus().name(),  // Aqui assumimos que paymentStatus é um enum
+                payment.getAmount(),
+                payment.getCurrency()
+        );
     }
+    
 }

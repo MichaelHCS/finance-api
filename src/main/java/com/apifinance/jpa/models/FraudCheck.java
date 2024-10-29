@@ -28,7 +28,7 @@ public class FraudCheck {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
-    private Payment payment; // Supondo que a entidade Payment já esteja criada
+    private Payment payment; 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fraud_status", nullable = false)
@@ -43,13 +43,12 @@ public class FraudCheck {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rabbitmq_message_id")
-    private RabbitMqMessage rabbitMqMessage; // Supondo que tenha uma entidade RabbitmqMessage
+    private RabbitMqMessage rabbitMqMessage; 
 
     public FraudCheck() {
-        this.checkedAt = ZonedDateTime.now(); // Define a data e hora atual como valor padrão
+        this.checkedAt = ZonedDateTime.now(); 
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -102,11 +101,11 @@ public class FraudCheck {
     public String toString() {
         return "FraudCheck{"
                 + "id=" + id
-                + ", payment=" + payment // Evita carregar toda a entidade de forma preguiçosa
+                + ", payment=" + (payment != null ? payment.getId() : "null" )
                 + ", fraudStatus=" + fraudStatus
                 + ", fraudReason=" + fraudReason
                 + ", checkedAt=" + checkedAt
-                + ", rabbitMqMessage=" + rabbitMqMessage // Evita carregar toda a entidade de forma preguiçosa
+                + ", rabbitMqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null")
                 + '}';
     }
 

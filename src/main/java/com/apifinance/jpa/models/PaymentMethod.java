@@ -16,7 +16,7 @@ public class PaymentMethod {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Identificador único do método de pagamento
+    private Long id;
 
     @Column(name = "type", nullable = false)
     private PaymentType type; 

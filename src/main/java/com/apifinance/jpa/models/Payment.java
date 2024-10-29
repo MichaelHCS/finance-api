@@ -42,10 +42,6 @@ public class Payment {
     @JoinColumn(name = "fraud_check_id")
     private FraudCheck fraudCheck;
 
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "rabbitmq_message")
-    //private RabbitMqMessage rabbitMqMessage;
-
     public Payment() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
@@ -123,14 +119,6 @@ public class Payment {
         this.paymentStatus = paymentStatus;
     }
 
-    //public RabbitMqMessage getRabbitMqMessage() {
-    //    return rabbitMqMessage;
-    //}
-
-    //public void setRabbitMqMessage(RabbitMqMessage rabbitMqMessage) {
-    //    this.rabbitMqMessage = rabbitMqMessage;
-    //}
-
     @Override
     public String toString() {
         return "Payment{"
@@ -143,7 +131,6 @@ public class Payment {
                 + ", createdAt=" + createdAt
                 + ", updatedAt=" + updatedAt
                 + ", fraudCheck=" + (fraudCheck != null ? fraudCheck.getId() : "null")
-                //+ ", rabbitmqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null")
                 + '}';
     }
 }

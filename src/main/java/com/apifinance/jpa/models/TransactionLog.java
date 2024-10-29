@@ -101,7 +101,7 @@ public class TransactionLog {
     public String toString() {
         return "TransactionLog{"
                 + "id=" + id
-                + ", payment=" + (payment != null ? payment.getId() : "null") // Para evitar a impressão do objeto Payment completo
+                + ", payment=" + (payment != null ? payment.getId() : "null") 
                 + ", action=" + action
                 + ", timestamp=" + timestamp
                 + ", details='" + details + '\''
