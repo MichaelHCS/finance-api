@@ -28,18 +28,15 @@ public class PaymentService {
     private final RabbitMqService rabbitMqService;
     private final CustomerRepository customerRepository;
     private final TransactionLogRepository transactionLogRepository;
-    private final FraudCheckService fraudCheckService;
 
     public PaymentService(PaymentRepository paymentRepository,
                           RabbitMqService rabbitMqService,
                           CustomerRepository customerRepository,
-                          TransactionLogRepository transactionLogRepository, 
-                          FraudCheckService fraudCheckService) {
+                          TransactionLogRepository transactionLogRepository) {
         this.paymentRepository = paymentRepository;
         this.rabbitMqService = rabbitMqService;
         this.customerRepository = customerRepository;
         this.transactionLogRepository = transactionLogRepository;
-        this.fraudCheckService = fraudCheckService;
     }
 
     @Transactional
@@ -57,7 +54,9 @@ public class PaymentService {
         Payment savedPayment = paymentRepository.save(payment);
 
         try {
-            publishPaymentMessage(savedPayment);
+            // Agora publicamos a mensagem diretamente aqui
+            String messageContent = createPaymentMessage(savedPayment);
+            rabbitMqService.publishMessage(RabbitMqConfig.EXCHANGE, RabbitMqConfig.ROUTING_KEY, messageContent);
             createTransactionLog(savedPayment, TransactionAction.PAYMENT_CREATED, null);
         } catch (Exception e) {
             logger.error("Error processing payment: {}", e.getMessage(), e);
@@ -68,21 +67,20 @@ public class PaymentService {
     }
 
     public void createTransactionLog(Payment payment, TransactionAction action, FraudCheckReason reason) {
-        String message;
-    
-        if (action == TransactionAction.PAYMENT_CREATED) {
-            message = TransactionLogDetails.PAYMENT_CREATED.getDetails(payment, reason);
-        } else if (action == TransactionAction.FRAUD_DETECTED) {
-            message = TransactionLogDetails.FRAUD_DETECTED.getDetails(payment, reason);
-        } else {
-            message = "Ação desconhecida"; // Ou outro valor padrão, caso necessário
-        }
-    
+        String message = switch (action) {
+            case PAYMENT_CREATED -> TransactionLogDetails.PAYMENT_CREATED.getDetails(payment, reason);
+            case FRAUD_DETECTED -> TransactionLogDetails.FRAUD_DETECTED.getDetails(payment, reason);
+            default -> "Ação desconhecida"; // Ou outro valor padrão, caso necessário
+        };
+
+        // Criando o registro de log de transação
         TransactionLog transactionLog = new TransactionLog(payment, action, ZonedDateTime.now(), message);
         transactionLogRepository.save(transactionLog);
+        
+        // Logando a criação do log de transação
         logger.info("Transaction log created for payment ID: {}", payment.getId());
     }
-    
+
     public List<Payment> findAll() {
         return paymentRepository.findAll();
     }
@@ -99,24 +97,14 @@ public class PaymentService {
         paymentRepository.deleteById(id);
     }
 
-    private void publishPaymentMessage(Payment payment) {
-        String messageContent = createPaymentMessage(payment);
-        String exchange = RabbitMqConfig.EXCHANGE;
-        String routingKey = RabbitMqConfig.ROUTING_KEY;
-    
-        // Publica a mensagem e processa somente se enviada com sucesso
-        rabbitMqService.publishMessage(exchange, routingKey, messageContent);
-    }
-    
-
+    // Removemos o método publishPaymentMessage
     private String createPaymentMessage(Payment payment) {
         return String.format(
                 "Mensagem de pagamento ID %s: Status - '%s', montante %.2f %s.",
                 payment.getId(),
-                payment.getPaymentStatus().name(),  // Aqui assumimos que paymentStatus é um enum
+                payment.getPaymentStatus().name(),
                 payment.getAmount(),
                 payment.getCurrency()
         );
     }
-    
 }

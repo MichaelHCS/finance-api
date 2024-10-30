@@ -1,19 +1,27 @@
 package com.apifinance.jpa.services;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
 
+import java.util.UUID;
+
 @Service
 public class RabbitMqService {
+
+    private static final Logger logger = LoggerFactory.getLogger(RabbitMqService.class);
 
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMqMessageRepository rabbitMqMessageRepository;
@@ -24,79 +32,66 @@ public class RabbitMqService {
         this.rabbitMqMessageRepository = rabbitMqMessageRepository;
     }
 
-    // Método para publicar a mensagem e salvar no repositório
     public void publishMessage(String exchange, String routingKey, String messageContent) {
-        Optional<RabbitMqMessage> existingMessageOpt = rabbitMqMessageRepository.findByMessageContent(messageContent);
-        
-        if (existingMessageOpt.isPresent()) {
-            System.out.println("A mensagem já existe no repositório e não será enviada novamente.");
-            return; // Não envia a mensagem se já existe
-        }
-    
-        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
-        rabbitMqMessage.setMessageContent(messageContent);
-        rabbitMqMessage.setSentAt(ZonedDateTime.now()); // Define o timestamp no início
-    
-        try {
-            // Enviar a mensagem
-            rabbitTemplate.convertAndSend(exchange, routingKey, messageContent);
-            
-            // Atualiza o status para SENT após envio bem-sucedido
-            rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
-            
-            // Processa a mensagem após confirmar o envio
-            processMessage(rabbitMqMessage);
-            
-            System.out.println("Mensagem enviada e processada com sucesso.");
-        } catch (Exception e) {
-            // Atualiza o status para ERROR em caso de falha
-            System.err.println("Erro ao enviar mensagem: " + e.getMessage());
-            rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR);
-        } finally {
-            // Salvar o registro, mesmo em caso de erro
-            rabbitMqMessageRepository.save(rabbitMqMessage);
-        }
-    }
-    
+    // Verifica se a mensagem já existe no repositório
+    Optional<RabbitMqMessage> existingMessageOpt = rabbitMqMessageRepository.findByMessageContent(messageContent);
 
-    // Método para processar a mensagem com tratamento de erro
+    if (existingMessageOpt.isPresent()) {
+        System.out.println("A mensagem já existe no repositório e não será enviada novamente.");
+        return;
+    }
+
+    if (messageContent == null || messageContent.isEmpty()) {
+        System.out.println("O conteúdo da mensagem não pode ser nulo ou vazio.");
+        return;
+    }
+
+    RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
+    rabbitMqMessage.setMessageContent(messageContent);
+    rabbitMqMessage.setSentAt(ZonedDateTime.now());
+
+    CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+    try {
+        rabbitTemplate.setConfirmCallback((correlationData1, ack, cause) -> {
+            if (ack) {
+                System.out.println("Mensagem confirmada pelo RabbitMQ.");
+                rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
+                processMessage(rabbitMqMessage);
+            } else {
+                System.err.println("Falha no envio da mensagem: " + cause);
+                rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR);
+            }
+            rabbitMqMessageRepository.save(rabbitMqMessage);
+        });
+
+        rabbitTemplate.convertAndSend(exchange, routingKey, messageContent, correlationData);
+        System.out.println("Mensagem enviada para RabbitMQ com sucesso.");
+
+    } catch (AmqpException e) {
+        System.err.println("Erro ao enviar mensagem via RabbitMQ: " + e.getMessage());
+        rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR);
+        rabbitMqMessageRepository.save(rabbitMqMessage);
+    }
+}
+
+
     public void processMessage(RabbitMqMessage rabbitMqMessage) {
         try {
             if (rabbitMqMessage.getMessageContent() == null) {
                 throw new IllegalArgumentException("Conteúdo da mensagem não pode ser nulo");
             }
 
-            // Simulação de processamento bem-sucedido
-            System.out.println("Processando a mensagem: " + rabbitMqMessage.getMessageContent());
+            logger.info("Processando a mensagem: {}", rabbitMqMessage.getMessageContent());
 
-            // Atualiza o status e define o processedAt
             rabbitMqMessage.setProcessedAt(ZonedDateTime.now());
             rabbitMqMessage.setStatus(RabbitMqMessageStatus.PROCESSED);
-
-            // Salva as alterações sem criar um novo registro
             rabbitMqMessageRepository.save(rabbitMqMessage);
-        } catch (Exception e) {
-            System.err.println("Erro ao processar a mensagem: " + e.getMessage());
 
-            // Atualiza o status para ERROR se algo der errado
+        } catch (IllegalArgumentException | DataAccessException e) {
+            logger.error("Erro ao processar a mensagem: {}", e.getMessage());
             rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR);
-            rabbitMqMessage.setProcessedAt(ZonedDateTime.now()); // Define o processedAt mesmo em caso de erro
+            rabbitMqMessage.setProcessedAt(ZonedDateTime.now());
             rabbitMqMessageRepository.save(rabbitMqMessage);
         }
-    }
-
-    // Método para encontrar todas as mensagens
-    public List<RabbitMqMessage> findAll() {
-        return rabbitMqMessageRepository.findAll();
-    }
-
-    // Método para encontrar uma mensagem por ID
-    public RabbitMqMessage findById(Long id) {
-        return rabbitMqMessageRepository.findById(id).orElse(null);
-    }
-
-    // Método para deletar uma mensagem por ID
-    public void deleteById(Long id) {
-        rabbitMqMessageRepository.deleteById(id);
     }
 }
