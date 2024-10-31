@@ -1,20 +1,29 @@
 package com.apifinance.jpa.services;
 
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckStatus;
-import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.models.FraudCheck;
 import com.apifinance.jpa.models.Payment;
+import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.repositories.FraudCheckRepository;
 import com.apifinance.jpa.repositories.PaymentRepository;
+import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
+import com.apifinance.jpa.exceptions.ResourceNotFoundException;
 
 @Service
 public class FraudCheckService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FraudCheckService.class);
 
     @Autowired
     private FraudCheckRepository fraudCheckRepository;
@@ -22,38 +31,60 @@ public class FraudCheckService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    public List<FraudCheck> findAll() {
-        return fraudCheckRepository.findAll();
-    }
+    @Autowired
+    private RabbitMqMessageRepository rabbitMqMessageRepository;
 
-    public FraudCheck findById(Long id) {
-        return fraudCheckRepository.findById(id).orElse(null);
-    }
+    public void analyzePayment(Long paymentId, Long rabbitMqMessageId,
+            FraudCheckStatus fraudStatus, FraudCheckReason fraudReason) {
+        logger.info("Iniciando análise de fraude para o pagamento ID: {}", paymentId);
 
-    public FraudCheck save(FraudCheck fraudCheck) {
-        return fraudCheckRepository.save(fraudCheck);
-    }
+        // Verifica se o pagamento existe
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado: " + paymentId));
 
-    public void deleteById(Long id) {
-        fraudCheckRepository.deleteById(id);
-    }
+        // Verifica se a mensagem RabbitMQ existe
+        RabbitMqMessage rabbitMqMessage = rabbitMqMessageRepository.findById(rabbitMqMessageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Mensagem RabbitMQ não encontrada: " + rabbitMqMessageId));
 
-    public void analyzeFraud(Long id, FraudCheck fraudCheck) {
-        FraudCheck existingFraudCheck = findById(id);
-        if (existingFraudCheck != null) {
-            Payment payment = existingFraudCheck.getPayment();
-            boolean isFraudulent = fraudCheck.getFraudStatus() == FraudCheckStatus.REJECTED;
+        // Criação do objeto FraudCheck
+        FraudCheck fraudCheck = new FraudCheck();
+        fraudCheck.setPayment(payment);
+        fraudCheck.setRabbitMqMessage(rabbitMqMessage);
+        fraudCheck.setFraudStatus(fraudStatus);
+        fraudCheck.setFraudReason(fraudReason);
+        fraudCheck.setCheckedAt(ZonedDateTime.now());
 
-            // Atualiza o status do pagamento
-            payment.setPaymentStatus(isFraudulent ? PaymentStatus.REJECTED : PaymentStatus.APPROVED);
-            paymentRepository.save(payment);
+        // Criar um mapa para associar FraudCheckStatus a ações
+        Map<FraudCheckStatus, Consumer<Payment>> statusActions = new HashMap<>();
 
-            // Atualiza os detalhes de fraude
-            existingFraudCheck.setCheckedAt(ZonedDateTime.now());
-            existingFraudCheck.setFraudStatus(isFraudulent ? FraudCheckStatus.REJECTED : FraudCheckStatus.APPROVED);
-            existingFraudCheck.setFraudReason(fraudCheck.getFraudReason());
+        statusActions.put(FraudCheckStatus.REJECTED, p -> {
+            logger.warn("Pagamento ID: {} foi rejeitado. Motivo: {}", p.getId(), fraudReason.getDescription());
+        });
 
-            fraudCheckRepository.save(existingFraudCheck);
+        statusActions.put(FraudCheckStatus.APPROVED, p -> {
+            logger.info("Pagamento ID: {} foi aprovado.", p.getId());
+        });
+
+        // Executar a ação correspondente ao status
+        Consumer<Payment> action = statusActions.get(fraudStatus);
+        if (action != null) {
+            action.accept(payment);
+        } else {
+            logger.error("Status de fraude inválido para o pagamento ID: {}.", payment.getId());
+            throw new IllegalArgumentException("Status de fraude inválido.");
         }
+
+        // Salva a verificação de fraude
+        fraudCheckRepository.save(fraudCheck);
+        logger.info("Verificação de fraude salva com sucesso para o pagamento ID: {}.", payment.getId());
+
+        // Atualiza o status do pagamento
+        payment.setPaymentStatus(fraudCheck.getFraudStatus().toPaymentStatus());
+        payment.setUpdatedAt(ZonedDateTime.now());
+
+        payment.setFraudCheck(fraudCheck); // Isso depende da implementação da classe Payment
+        // Salva o pagamento atualizado
+        paymentRepository.save(payment);
+        logger.info("Status do pagamento ID: {} atualizado para: {}", payment.getId(), fraudCheck.getFraudStatus());
     }
 }
