@@ -2,45 +2,32 @@ package com.apifinance.jpa.controllers;
 
 import com.apifinance.jpa.models.Customer;
 import com.apifinance.jpa.services.CustomerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
+    private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
     @Autowired
     private CustomerService customerService;
 
-    @GetMapping
-    public List<Customer> getAllCustomers() {
-        return customerService.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
-        Customer customer = customerService.findById(id);
-        return customer != null ? ResponseEntity.ok(customer) : ResponseEntity.notFound().build();
-    }
-
     @PostMapping
-    public Customer createCustomer(@RequestBody Customer customer) {
-        return customerService.save(customer);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
-        customer.setId(id);
-        Customer updatedCustomer = customerService.save(customer);
-        return ResponseEntity.ok(updatedCustomer);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> createCustomer(@RequestBody Customer customer) {
+        logger.info("Recebendo requisição para criar cliente: {}", customer.getName());
+        try {
+            customerService.validateCustomer(customer);
+            customerService.saveCustomer(customer);
+            logger.info("Cliente criado com sucesso: {}", customer.getName());
+            return ResponseEntity.status(HttpStatus.CREATED).body("Cliente criado com sucesso.");
+        } catch (IllegalArgumentException e) {
+            logger.error("Erro ao criar cliente: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

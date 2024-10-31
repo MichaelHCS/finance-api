@@ -1,19 +1,8 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
-import com.apifinance.jpa.enums.TransactionAction;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.apifinance.jpa.enums.TransactionLogDetails;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "transaction_log")
@@ -29,7 +18,7 @@ public class TransactionLog {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
-    private TransactionAction action;
+    private TransactionLogDetails action;
 
     @Column(name = "timestamp", nullable = false)
     private ZonedDateTime timestamp;
@@ -40,12 +29,11 @@ public class TransactionLog {
     public TransactionLog() {
     }
 
-    public TransactionLog(Payment payment, TransactionAction action, ZonedDateTime timestamp, String details) {
+    public TransactionLog(Payment payment, TransactionLogDetails action, ZonedDateTime timestamp, String details) {
         this.payment = payment;
         this.action = action;
         this.timestamp = timestamp;
         this.details = details;
-        
     }
 
     public Long getId() {
@@ -64,11 +52,11 @@ public class TransactionLog {
         this.payment = payment;
     }
 
-    public TransactionAction getAction() {
+    public TransactionLogDetails getAction() {
         return action;
     }
 
-    public void setAction(TransactionAction action) {
+    public void setAction(TransactionLogDetails action) {
         this.action = action;
     }
 
@@ -88,7 +76,6 @@ public class TransactionLog {
         this.details = details;
     }
 
-
     // Método para gerar uma mensagem de log detalhada
     public String generateLogMessage() {
         return String.format("Ação: %s, Detalhes: %s, Data e Hora: %s",
@@ -99,12 +86,8 @@ public class TransactionLog {
 
     @Override
     public String toString() {
-        return "TransactionLog{"
-                + "id=" + id
-                + ", payment=" + (payment != null ? payment.getId() : "null") 
-                + ", action=" + action
-                + ", timestamp=" + timestamp
-                + ", details='" + details + '\''
-                + '}';
+        return String.format("TransactionLog{id=%d, payment=%s, action=%s, timestamp=%s, details='%s'}",
+                id, payment != null ? payment.getId() : "null", action, timestamp, details);
     }
+
 }

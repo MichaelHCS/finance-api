@@ -3,12 +3,7 @@ package com.apifinance.jpa.models;
 import com.apifinance.jpa.enums.PaymentMethodDetails;
 import com.apifinance.jpa.enums.PaymentType;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "payment_method")
@@ -59,11 +54,7 @@ public class PaymentMethod {
 
     @Override
     public String toString() {
-        return "PaymentMethod{"
-                + "id=" + id
-                + ", type=" + type
-                + ", details=" + details
-                + '}';
+        return String.format("PaymentMethod{id=%d, type=%s, details=%s}", id, type, details);
     }
 
 }

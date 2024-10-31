@@ -3,17 +3,7 @@ package com.apifinance.jpa.models;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "customer")
@@ -24,25 +14,18 @@ public class Customer {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    @NotNull
-    @Size(min = 1, max = 100)
     private String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    @NotNull
-    @Email
     private String email;
 
     @Column(name = "phone_number", nullable = false)
-    @NotNull
-    @Size(min = 10, max = 15)
     private String phoneNumber;
 
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt;
 
-    @Transient
-    @OneToMany
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private List<Payment> payments;
 
     public Customer() {
@@ -111,7 +94,8 @@ public class Customer {
                 + ", email='" + email + '\''
                 + ", phoneNumber='" + phoneNumber + '\''
                 + ", createdAt=" + createdAt
-                + '}';
+                + ", payments=" + payments
+                + +'}';
     }
 
 }

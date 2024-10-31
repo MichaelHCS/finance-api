@@ -1,6 +1,5 @@
 package com.apifinance.jpa.controllers;
 
-import com.apifinance.jpa.models.RabbitMqMessage;
 import com.apifinance.jpa.services.RabbitMqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +17,10 @@ public class RabbitMqMessageController {
     }
 
     @PostMapping
-    public ResponseEntity<RabbitMqMessage> createRabbitMqMessage(
-        @RequestParam String exchange, 
-        @RequestParam String routingKey, 
-        @RequestBody String messageContent) {
-        
-        rabbitMqService.publishMessage(exchange, routingKey, messageContent);
+    public ResponseEntity<Void> createRabbitMqMessage(
+            @RequestParam String messageContent) {
+
+        rabbitMqService.publishMessage(messageContent);
         return ResponseEntity.ok().build();
     }
 }

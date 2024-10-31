@@ -5,18 +5,7 @@ import java.time.ZonedDateTime;
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckStatus;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "fraud_check")
@@ -28,7 +17,7 @@ public class FraudCheck {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
-    private Payment payment; 
+    private Payment payment;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fraud_status", nullable = false)
@@ -43,10 +32,10 @@ public class FraudCheck {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rabbitmq_message_id")
-    private RabbitMqMessage rabbitMqMessage; 
+    private RabbitMqMessage rabbitMqMessage;
 
     public FraudCheck() {
-        this.checkedAt = ZonedDateTime.now(); 
+        this.checkedAt = ZonedDateTime.now();
     }
 
     public Long getId() {
@@ -99,14 +88,13 @@ public class FraudCheck {
 
     @Override
     public String toString() {
-        return "FraudCheck{"
-                + "id=" + id
-                + ", payment=" + (payment != null ? payment.getId() : "null" )
-                + ", fraudStatus=" + fraudStatus
-                + ", fraudReason=" + fraudReason
-                + ", checkedAt=" + checkedAt
-                + ", rabbitMqMessage=" + (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null")
-                + '}';
+        return String.format("FraudCheck{id=%d, payment=%s, fraudStatus=%s, fraudReason=%s, checkedAt=%s, rabbitMqMessage=%s}",
+                id,
+                (payment != null ? payment.getId() : "null"),
+                fraudStatus,
+                fraudReason,
+                checkedAt,
+                (rabbitMqMessage != null ? rabbitMqMessage.getId() : "null"));
     }
 
 }

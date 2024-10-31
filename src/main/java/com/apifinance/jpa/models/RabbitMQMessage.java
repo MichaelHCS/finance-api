@@ -4,14 +4,7 @@ import java.time.ZonedDateTime;
 
 import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "rabbitmq_message")
@@ -34,7 +27,9 @@ public class RabbitMqMessage {
     @Column(name = "processed_at")
     private ZonedDateTime processedAt;
 
-    public RabbitMqMessage() {}
+    public RabbitMqMessage() {
+
+    }
 
     public Long getId() {
         return id;
@@ -78,13 +73,8 @@ public class RabbitMqMessage {
 
     @Override
     public String toString() {
-        return "RabbitMqMessage{" +
-                "id=" + id +
-                ", messageContent='" + messageContent + '\'' +
-                ", status=" + status +
-                ", sentAt=" + sentAt +
-                ", processedAt=" + processedAt +
-                '}';
+        return String.format("RabbitMqMessage{id=%d, messageContent='%s', status=%s, sentAt=%s, processedAt=%s}",
+                id, messageContent, status, sentAt, processedAt);
     }
 
 
