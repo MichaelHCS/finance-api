@@ -28,7 +28,7 @@ public class RabbitMqService {
     }
 
     public void publishMessage(String messageContent) {
-        // Cria um registro inicial na tabela rabbitmq_message com status SENT e define sent_at
+
         RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
         rabbitMqMessage.setMessageContent(messageContent);
         rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
@@ -37,30 +37,29 @@ public class RabbitMqService {
         rabbitMqMessage.setSentAt(sentAt);
         rabbitRepository.save(rabbitMqMessage);
         logger.info("Mensagem criada com status SENT e registrada na tabela rabbitmq_message: {}", rabbitMqMessage);
-        logger.info("Hora de envio (sent_at): {}", sentAt); // Log do horário de envio
+        logger.info("Hora de envio (sent_at): {}", sentAt);
 
         try {
-            // Publica a mensagem na fila RabbitMQ
+
             rabbitTemplate.convertAndSend("paymentQueue", messageContent);
             logger.info("Mensagem publicada na fila RabbitMQ: {}", messageContent);
 
-            // Após confirmação de processamento, atualiza o status para PROCESSED e define processed_at
             rabbitMqMessage.setStatus(RabbitMqMessageStatus.PROCESSED);
             ZonedDateTime processedAt = ZonedDateTime.now();
             rabbitMqMessage.setProcessedAt(processedAt);
             rabbitRepository.save(rabbitMqMessage);
-            
-            logger.info("Registro atualizado para status PROCESSED na tabela rabbitmq_message: {}", rabbitMqMessage);
-            logger.info("Hora de processamento (processed_at): {}", processedAt); // Log do horário de processamento
 
-        } catch (DataAccessException | AmqpException e) { // Multi-catch for specific exceptions
-            // Em caso de erro, atualiza o status para ERROR e define processed_at
+            logger.info("Registro atualizado para status PROCESSED na tabela rabbitmq_message: {}", rabbitMqMessage);
+            logger.info("Hora de processamento (processed_at): {}", processedAt);
+
+        } catch (DataAccessException | AmqpException e) {
+
             rabbitMqMessage.setStatus(RabbitMqMessageStatus.ERROR);
             ZonedDateTime processedAt = ZonedDateTime.now();
             rabbitMqMessage.setProcessedAt(processedAt);
             rabbitRepository.save(rabbitMqMessage);
             logger.error("Erro ao publicar mensagem no RabbitMQ. Status atualizado para ERROR: {}", rabbitMqMessage, e);
-            logger.info("Hora de erro (processed_at): {}", processedAt); // Log do horário de erro
+            logger.info("Hora de erro (processed_at): {}", processedAt);
         }
 
     }

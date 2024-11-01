@@ -1,11 +1,14 @@
 package com.apifinance.jpa.controllers;
 
+import com.apifinance.jpa.enums.FraudCheckReason;
+import com.apifinance.jpa.models.Payment;
 import com.apifinance.jpa.models.TransactionLog;
 import com.apifinance.jpa.services.TransactionLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -27,8 +30,9 @@ public class TransactionLogController {
     }
 
     @PostMapping
-    public TransactionLog createTransactionLog(@RequestBody TransactionLog transactionLog) {
-        return transactionLogService.save(transactionLog);
+    public ResponseEntity<TransactionLog> createTransactionLog(@RequestBody TransactionLog transactionLog) {
+        TransactionLog savedTransactionLog = transactionLogService.save(transactionLog);
+        return ResponseEntity.created(URI.create("/transaction-logs/" + savedTransactionLog.getId())).body(savedTransactionLog);
     }
 
     @PutMapping("/{id}")
@@ -42,5 +46,17 @@ public class TransactionLogController {
     public ResponseEntity<Void> deleteTransactionLog(@PathVariable Long id) {
         transactionLogService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/log/payment-created")
+    public ResponseEntity<Void> logPaymentCreated(@RequestBody Payment payment) {
+        transactionLogService.logPaymentCreated(payment);
+        return ResponseEntity.status(201).build();
+    }
+
+    @PostMapping("/log/fraud-detected")
+    public ResponseEntity<Void> logFraudDetected(@RequestBody Payment payment, @RequestParam FraudCheckReason reason) {
+        transactionLogService.logFraudDetected(payment, reason);
+        return ResponseEntity.status(201).build();
     }
 }

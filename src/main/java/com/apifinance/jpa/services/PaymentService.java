@@ -26,17 +26,17 @@ public class PaymentService {
     }
 
     public Payment createPayment(Payment payment) {
-        // Definindo status e horários iniciais
-        logger.info("Criando pagamento: {}", payment); // Log do pagamento recebido
-        payment.setPaymentStatus(PaymentStatus.PENDING); // Define o status inicial
-        payment.setCreatedAt(ZonedDateTime.now()); // Define a data de criação
-        payment.setUpdatedAt(ZonedDateTime.now()); // Define a data de atualização inicial
+     
+        logger.info("Criando pagamento: {}", payment); 
+        payment.setPaymentStatus(PaymentStatus.PENDING); 
+        payment.setCreatedAt(ZonedDateTime.now()); 
+        payment.setUpdatedAt(ZonedDateTime.now()); 
         
-        // Salva o pagamento no banco de dados
+        
         Payment savedPayment = paymentRepository.save(payment);
-        logger.info("Pagamento criado com sucesso: {}", savedPayment); // Log do pagamento salvo
+        logger.info("Pagamento criado com sucesso: {}", savedPayment); 
 
-        // Publica uma mensagem na fila RabbitMQ
+        
         String message = "Pagamento criado com ID: " + savedPayment.getId() + " e status: " + savedPayment.getPaymentStatus();
         rabbitMqService.publishMessage(message);
 
