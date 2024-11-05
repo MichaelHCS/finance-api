@@ -57,22 +57,28 @@ public class PaymentService {
         logger.info("Total de pagamentos recuperados: {}", payments.size());
         return payments;
     }
-    
+
     public Payment updatePayment(UUID paymentId, Payment paymentDetails) {
         logger.info("Atualizando pagamento com ID: {}", paymentId);
+        
         Payment existingPayment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> {
                     logger.error("Pagamento não encontrado com ID: {}", paymentId);
                     return new ResourceNotFoundException("Pagamento não encontrado com ID: " + paymentId);
                 });
-        
+
+        existingPayment.setCreatedAt(ZonedDateTime.now());
         existingPayment.setAmount(paymentDetails.getAmount());
-        existingPayment.setCurrency(paymentDetails.getCurrency()); 
+        existingPayment.setCurrency(paymentDetails.getCurrency());
         existingPayment.setPaymentType(paymentDetails.getPaymentType());
-        existingPayment.setUpdatedAt(ZonedDateTime.now()); 
-        
+        existingPayment.setUpdatedAt(ZonedDateTime.now());
+
         Payment updatedPayment = paymentRepository.save(existingPayment);
         logger.info("Pagamento atualizado com sucesso: {}", updatedPayment);
+
+        String messageContent = updatedPayment.getId().toString(); // Apenas o ID do pagamento
+        rabbitMqService.publishMessage(messageContent);
+
         return updatedPayment;
     }
 

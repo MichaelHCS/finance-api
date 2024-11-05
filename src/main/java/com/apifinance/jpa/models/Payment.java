@@ -6,6 +6,9 @@ import java.util.UUID;
 
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +22,7 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonBackReference
     private Customer customer;
 
     @Enumerated(EnumType.STRING)

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apifinance.jpa.dtos.FraudCheckRequest;
 import com.apifinance.jpa.dtos.FraudCheckResponse;
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckStatus;
@@ -103,6 +104,30 @@ public class FraudCheckService {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
+
+    public FraudCheckResponse updateFraudCheck(UUID fraudCheckId, FraudCheckRequest updateRequest) {
+        FraudCheck existingFraudCheck = fraudCheckRepository.findById(fraudCheckId)
+                .orElseThrow(() -> new ResourceNotFoundException("Verificação de fraude não encontrada para o ID: " + fraudCheckId));
+
+        // Atualize os campos permitidos
+        if (updateRequest.getFraudStatus() != null) {
+            existingFraudCheck.setFraudStatus(updateRequest.getFraudStatus());
+        }
+        if (updateRequest.getFraudReason() != null) {
+            existingFraudCheck.setFraudReason(updateRequest.getFraudReason());
+        }
+        if (updateRequest.getRabbitMqMessageId() != null) {
+            RabbitMqMessage rabbitMqMessage = rabbitMqMessageRepository.findById(updateRequest.getRabbitMqMessageId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Mensagem RabbitMQ não encontrada com o ID: " + updateRequest.getRabbitMqMessageId()));
+            existingFraudCheck.setRabbitMqMessage(rabbitMqMessage);
+        }
+
+        // Salva as atualizações
+        fraudCheckRepository.save(existingFraudCheck);
+        logger.info("Verificação de fraude com ID: {} atualizada com sucesso", fraudCheckId);
+
+        return convertToResponse(existingFraudCheck);
+    }
     
     private FraudCheckResponse convertToResponse(FraudCheck fraudCheck) {
         return new FraudCheckResponse(
@@ -120,4 +145,8 @@ public class FraudCheckService {
                 .orElseThrow(() -> new ResourceNotFoundException("Verificação de fraude não encontrada com o ID: " + fraudCheckId));
         fraudCheckRepository.delete(fraudCheck);
     }
+
+
+
+
 }
