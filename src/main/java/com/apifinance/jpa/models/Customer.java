@@ -2,6 +2,8 @@ package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.UUID;
+
 
 import jakarta.persistence.*;
 
@@ -10,8 +12,9 @@ import jakarta.persistence.*;
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -30,13 +33,19 @@ public class Customer {
 
     public Customer() {
         this.createdAt = ZonedDateTime.now();
+        this.id = UUID.randomUUID();
     }
 
-    public Long getId() {
+    //public Customer(String name) {
+    //    this();
+    //    this.name = name;
+    //}
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -1,8 +1,9 @@
 package com.apifinance.jpa.services;
 
-import com.apifinance.jpa.enums.RabbitMqMessageStatus;
-import com.apifinance.jpa.models.RabbitMqMessage;
-import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -11,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
-import java.time.ZonedDateTime;
+import com.apifinance.jpa.enums.RabbitMqMessageStatus;
+import com.apifinance.jpa.exceptions.ResourceNotFoundException;
+import com.apifinance.jpa.models.RabbitMqMessage;
+import com.apifinance.jpa.repositories.RabbitMqMessageRepository;
 
 @Service
 public class RabbitMqService {
@@ -32,12 +36,9 @@ public class RabbitMqService {
         RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
         rabbitMqMessage.setMessageContent(messageContent);
         rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
-
-        ZonedDateTime sentAt = ZonedDateTime.now();
-        rabbitMqMessage.setSentAt(sentAt);
-        rabbitRepository.save(rabbitMqMessage);
+        rabbitMqMessage.setSentAt(ZonedDateTime.now());
+        rabbitMqMessage = rabbitRepository.save(rabbitMqMessage);
         logger.info("Mensagem criada com status SENT e registrada na tabela rabbitmq_message: {}", rabbitMqMessage);
-        logger.info("Hora de envio (sent_at): {}", sentAt);
 
         try {
 
@@ -63,4 +64,34 @@ public class RabbitMqService {
         }
 
     }
+
+    public RabbitMqMessage updateMessage(UUID id, RabbitMqMessage updatedMessage) {
+        RabbitMqMessage existingMessage = getMessageById(id);
+        existingMessage.setMessageContent(updatedMessage.getMessageContent());
+        existingMessage.setStatus(updatedMessage.getStatus());
+        existingMessage.setProcessedAt(updatedMessage.getProcessedAt() != null ? updatedMessage.getProcessedAt() : existingMessage.getProcessedAt());
+        
+        RabbitMqMessage updatedRabbitMqMessage = rabbitRepository.save(existingMessage);
+        logger.info("Mensagem atualizada com ID {}: {}", id, updatedRabbitMqMessage);
+        return updatedRabbitMqMessage;
+    }
+
+    public List<RabbitMqMessage> getAllMessages() {
+        List<RabbitMqMessage> messages = rabbitRepository.findAll();
+        logger.info("Total de mensagens recuperadas: {}", messages.size());
+        return messages;
+    }
+
+    public RabbitMqMessage getMessageById(UUID id) {
+        RabbitMqMessage message = rabbitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mensagem não encontrada com ID: " + id));
+        logger.info("Mensagem recuperada com ID {}: {}", id, message);
+        return message;
+    }
+
+    public void deleteMessage(UUID id) {
+        rabbitRepository.deleteById(id);
+        logger.info("Mensagem com ID {} foi deletada.", id);
+    }
+
 }

@@ -3,10 +3,10 @@ package com.apifinance.jpa.dtos;
 import com.apifinance.jpa.models.Payment;
 
 public class PaymentRequest {
-    private Payment payment; // Objeto Payment
-    private FraudCheckRequest fraudCheckRequest; // Objeto FraudCheckRequest
+    private Payment payment; 
+    private FraudCheckRequest fraudCheckRequest; 
 
-    // Getters e Setters
+    
     public Payment getPayment() {
         return payment;
     }

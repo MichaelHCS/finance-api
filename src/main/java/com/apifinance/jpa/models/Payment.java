@@ -2,6 +2,8 @@ package com.apifinance.jpa.models;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.UUID;
+
 import com.apifinance.jpa.enums.PaymentStatus;
 import com.apifinance.jpa.enums.PaymentType;
 import jakarta.persistence.*;
@@ -11,8 +13,9 @@ import jakarta.persistence.*;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -45,13 +48,14 @@ public class Payment {
     public Payment() {
         this.createdAt = ZonedDateTime.now();
         this.updatedAt = ZonedDateTime.now();
+        this.id = UUID.randomUUID();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

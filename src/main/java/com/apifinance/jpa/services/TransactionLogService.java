@@ -1,6 +1,7 @@
 package com.apifinance.jpa.services;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class TransactionLogService {
         return transactionLogRepository.findAll();
     }
 
-    public TransactionLog findById(Long id) {
+    public TransactionLog findById(UUID id) {
         Optional<TransactionLog> transactionLog = transactionLogRepository.findById(id);
         return transactionLog.orElse(null);
     }
@@ -63,7 +64,7 @@ public class TransactionLogService {
         return transactionLogRepository.save(transactionLog);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         transactionLogRepository.deleteById(id);
     }
 }

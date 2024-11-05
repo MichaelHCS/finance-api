@@ -1,6 +1,8 @@
 package com.apifinance.jpa.models;
 
-import com.apifinance.jpa.enums.PaymentMethodDetails;
+import java.util.UUID;
+
+
 import com.apifinance.jpa.enums.PaymentType;
 
 import jakarta.persistence.*;
@@ -10,29 +12,31 @@ import jakarta.persistence.*;
 public class PaymentMethod {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "type", nullable = false)
     private PaymentType type; 
 
     @Column(name = "details", nullable = false)
-    private PaymentMethodDetails details; 
+    private String details; 
 
     public PaymentMethod() {
         
     }
 
-    public PaymentMethod(PaymentType type, PaymentMethodDetails details) {
+    public PaymentMethod(PaymentType type, String details) {
         this.type = type;
         this.details = details;
+        this.id = UUID.randomUUID();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -44,11 +48,11 @@ public class PaymentMethod {
         this.type = type;
     }
 
-    public PaymentMethodDetails getDetails() {
+    public String getDetails() {
         return details;
     }
 
-    public void setDetails(PaymentMethodDetails details) {
+    public void setDetails(String details) {
         this.details = details;
     }
 

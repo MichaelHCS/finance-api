@@ -1,6 +1,7 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 import com.apifinance.jpa.enums.FraudCheckReason;
 import com.apifinance.jpa.enums.FraudCheckStatus;
@@ -12,8 +13,8 @@ import jakarta.persistence.*;
 public class FraudCheck {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;  
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
@@ -36,13 +37,14 @@ public class FraudCheck {
 
     public FraudCheck() {
         this.checkedAt = ZonedDateTime.now();
+        this.id = UUID.randomUUID();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

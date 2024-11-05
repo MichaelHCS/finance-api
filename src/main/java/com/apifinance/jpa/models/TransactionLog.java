@@ -1,16 +1,29 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
+
 import com.apifinance.jpa.enums.TransactionLogDetails;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "transaction_log")
 public class TransactionLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
@@ -27,20 +40,15 @@ public class TransactionLog {
     private String details;
 
     public TransactionLog() {
+        this.id = UUID.randomUUID();
+        this.timestamp = ZonedDateTime.now();
     }
 
-    public TransactionLog(Payment payment, TransactionLogDetails action, ZonedDateTime timestamp, String details) {
-        this.payment = payment;
-        this.action = action;
-        this.timestamp = timestamp;
-        this.details = details;
-    }
-
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -76,7 +84,6 @@ public class TransactionLog {
         this.details = details;
     }
 
-    // Método para gerar uma mensagem de log detalhada
     public String generateLogMessage() {
         return String.format("Ação: %s, Detalhes: %s, Data e Hora: %s",
                 action != null ? action : "Ação desconhecida",

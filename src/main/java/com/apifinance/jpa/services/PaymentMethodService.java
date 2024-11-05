@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PaymentMethodService {
@@ -21,7 +22,7 @@ public class PaymentMethodService {
         return paymentMethodRepository.findAll();
     }
 
-    public PaymentMethod findById(Long id) {
+    public PaymentMethod findById(UUID id) {
         return paymentMethodRepository.findById(id).orElse(null);
     }
 
@@ -29,7 +30,7 @@ public class PaymentMethodService {
         return paymentMethodRepository.save(paymentMethod);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         paymentMethodRepository.deleteById(id);
     }
 }

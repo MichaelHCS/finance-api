@@ -1,6 +1,7 @@
 package com.apifinance.jpa.models;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 import com.apifinance.jpa.enums.RabbitMqMessageStatus;
 
@@ -11,8 +12,9 @@ import jakarta.persistence.*;
 public class RabbitMqMessage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "message_content", nullable = false)
     private String messageContent;
@@ -28,14 +30,15 @@ public class RabbitMqMessage {
     private ZonedDateTime processedAt;
 
     public RabbitMqMessage() {
-
+        this.id = UUID.randomUUID();
+        this.sentAt = ZonedDateTime.now();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -73,9 +76,10 @@ public class RabbitMqMessage {
 
     @Override
     public String toString() {
-        return String.format("RabbitMqMessage{id=%d, messageContent='%s', status=%s, sentAt=%s, processedAt=%s}",
-                id, messageContent, status, sentAt, processedAt);
+        return String.format(
+                "RabbitMqMessage{id='%s', messageContent='%s', status='%s', sentAt='%s', processedAt='%s'}",
+                id, messageContent, status, sentAt, processedAt
+        );
     }
-
 
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/transaction-logs")
@@ -24,7 +25,7 @@ public class TransactionLogController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionLog> getTransactionLogById(@PathVariable Long id) {
+    public ResponseEntity<TransactionLog> getTransactionLogById(@PathVariable UUID id) {
         TransactionLog transactionLog = transactionLogService.findById(id);
         return transactionLog != null ? ResponseEntity.ok(transactionLog) : ResponseEntity.notFound().build();
     }
@@ -35,26 +36,26 @@ public class TransactionLogController {
         return ResponseEntity.created(URI.create("/transaction-logs/" + savedTransactionLog.getId())).body(savedTransactionLog);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TransactionLog> updateTransactionLog(@PathVariable Long id, @RequestBody TransactionLog transactionLog) {
+     @PutMapping("/{id}")
+    public ResponseEntity<TransactionLog> updateTransactionLog(@PathVariable UUID id, @RequestBody TransactionLog transactionLog) {
         transactionLog.setId(id);
         TransactionLog updatedTransactionLog = transactionLogService.save(transactionLog);
         return ResponseEntity.ok(updatedTransactionLog);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransactionLog(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTransactionLog(@PathVariable UUID id) {
         transactionLogService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/log/payment-created")
+    @PostMapping("/payment-created")
     public ResponseEntity<Void> logPaymentCreated(@RequestBody Payment payment) {
         transactionLogService.logPaymentCreated(payment);
         return ResponseEntity.status(201).build();
     }
 
-    @PostMapping("/log/fraud-detected")
+    @PostMapping("/fraud-detected")
     public ResponseEntity<Void> logFraudDetected(@RequestBody Payment payment, @RequestParam FraudCheckReason reason) {
         transactionLogService.logFraudDetected(payment, reason);
         return ResponseEntity.status(201).build();

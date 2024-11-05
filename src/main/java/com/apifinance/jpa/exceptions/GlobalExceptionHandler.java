@@ -31,5 +31,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    // Você pode adicionar mais métodos para outras exceções específicas, se necessário.
+    
 }

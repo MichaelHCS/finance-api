@@ -1,4 +1,4 @@
-package com.apifinance.jpa.configrabbitmq;
+package com.apifinance.jpa.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
