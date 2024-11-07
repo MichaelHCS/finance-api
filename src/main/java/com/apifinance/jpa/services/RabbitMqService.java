@@ -32,14 +32,16 @@ public class RabbitMqService {
     }
 
     public void publishMessage(String messageContent) {
+        RabbitMqMessage rabbitMqMessage = rabbitRepository.findByMessageContent(messageContent)
+        .orElseGet(() -> {
+            RabbitMqMessage newMessage = new RabbitMqMessage();
+            newMessage.setMessageContent(messageContent);
+            newMessage.setStatus(RabbitMqMessageStatus.SENT);
+            newMessage.setSentAt(ZonedDateTime.now());
+            return newMessage;
+        });
 
-        RabbitMqMessage rabbitMqMessage = new RabbitMqMessage();
-        rabbitMqMessage.setMessageContent(messageContent);
-        rabbitMqMessage.setStatus(RabbitMqMessageStatus.SENT);
-        rabbitMqMessage.setSentAt(ZonedDateTime.now());
-        rabbitMqMessage = rabbitRepository.save(rabbitMqMessage);
-        logger.info("Mensagem criada com status SENT e registrada na tabela rabbitmq_message: {}", rabbitMqMessage);
-
+            
         try {
 
             rabbitTemplate.convertAndSend("paymentQueue", messageContent);
@@ -93,5 +95,14 @@ public class RabbitMqService {
         rabbitRepository.deleteById(id);
         logger.info("Mensagem com ID {} foi deletada.", id);
     }
+
+    public void deleteMessageByPaymentId(String paymentId) {
+        rabbitRepository.findByMessageContent(paymentId)
+                .ifPresent(rabbitMqMessage -> {
+                    rabbitRepository.delete(rabbitMqMessage);
+                    logger.info("Mensagem RabbitMQ com paymentId {} excluída com sucesso.", paymentId);
+                });
+    }
+    
 
 }

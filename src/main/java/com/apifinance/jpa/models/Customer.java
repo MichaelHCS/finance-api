@@ -38,11 +38,6 @@ public class Customer {
         this.id = UUID.randomUUID();
     }
 
-    //public Customer(String name) {
-    //    this();
-    //    this.name = name;
-    //}
-
     public UUID getId() {
         return id;
     }

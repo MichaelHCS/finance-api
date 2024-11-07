@@ -43,7 +43,7 @@ public class FraudCheckService {
     private RabbitMqMessageRepository rabbitMqMessageRepository;
 
     public void processAnalysis(UUID paymentId, UUID rabbitMqMessageId,
-                                FraudCheckStatus fraudStatus, FraudCheckReason fraudReason) {
+            FraudCheckStatus fraudStatus, FraudCheckReason fraudReason) {
 
         logger.info("Iniciando análise de fraude para o pagamento ID: {}", paymentId);
 
@@ -94,10 +94,10 @@ public class FraudCheckService {
     public FraudCheckResponse fetchById(UUID fraudCheckId) {
         FraudCheck fraudCheck = fraudCheckRepository.findById(fraudCheckId)
                 .orElseThrow(() -> new ResourceNotFoundException("Verificação de fraude não encontrada para o ID: " + fraudCheckId));
-        
+
         return convertToResponse(fraudCheck);
     }
-    
+
     public List<FraudCheckResponse> fetchAll() {
         return fraudCheckRepository.findAll()
                 .stream()
@@ -109,10 +109,22 @@ public class FraudCheckService {
         FraudCheck existingFraudCheck = fraudCheckRepository.findById(fraudCheckId)
                 .orElseThrow(() -> new ResourceNotFoundException("Verificação de fraude não encontrada para o ID: " + fraudCheckId));
 
-        // Atualize os campos permitidos
+        // Atualiza os campos permitidos e o horário de verificação
+        ZonedDateTime now = ZonedDateTime.now();
+        existingFraudCheck.setCheckedAt(now);
+
         if (updateRequest.getFraudStatus() != null) {
             existingFraudCheck.setFraudStatus(updateRequest.getFraudStatus());
+
+            // Atualiza o status e o horário no Payment associado
+            Payment payment = existingFraudCheck.getPayment();
+            payment.setPaymentStatus(updateRequest.getFraudStatus().toPaymentStatus());
+            payment.setUpdatedAt(now);
+
+            paymentRepository.save(payment);
+            logger.info("Status do pagamento ID: {} atualizado para: {}. Horário: {}", payment.getId(), updateRequest.getFraudStatus(), now);
         }
+
         if (updateRequest.getFraudReason() != null) {
             existingFraudCheck.setFraudReason(updateRequest.getFraudReason());
         }
@@ -122,13 +134,13 @@ public class FraudCheckService {
             existingFraudCheck.setRabbitMqMessage(rabbitMqMessage);
         }
 
-        // Salva as atualizações
+        // Salva as atualizações e log de tempo
         fraudCheckRepository.save(existingFraudCheck);
-        logger.info("Verificação de fraude com ID: {} atualizada com sucesso", fraudCheckId);
+        logger.info("Verificação de fraude com ID: {} atualizada com sucesso. Horário: {}", fraudCheckId, now);
 
         return convertToResponse(existingFraudCheck);
     }
-    
+
     private FraudCheckResponse convertToResponse(FraudCheck fraudCheck) {
         return new FraudCheckResponse(
                 fraudCheck.getId(),
@@ -141,12 +153,21 @@ public class FraudCheckService {
     }
 
     public void deleteById(UUID fraudCheckId) {
+        // Buscando o FraudCheck para garantir que ele existe
         FraudCheck fraudCheck = fraudCheckRepository.findById(fraudCheckId)
                 .orElseThrow(() -> new ResourceNotFoundException("Verificação de fraude não encontrada com o ID: " + fraudCheckId));
+
+        // Removendo a associação com Payment
+        Payment payment = fraudCheck.getPayment();
+        if (payment != null) {
+            payment.setFraudCheck(null);  // Remover a associação de FraudCheck do Payment
+            paymentRepository.save(payment);  // Salvando o Payment sem a associação com FraudCheck
+            logger.info("Associação de fraude removida do pagamento ID: {}", payment.getId());
+        }
+
+        // Agora excluímos o FraudCheck
         fraudCheckRepository.delete(fraudCheck);
+        logger.info("Verificação de fraude com ID: {} excluída com sucesso.", fraudCheckId);
     }
-
-
-
 
 }

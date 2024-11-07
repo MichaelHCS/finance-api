@@ -60,11 +60,4 @@ public class TransactionLogService {
         return transactionLog.orElse(null);
     }
 
-    public TransactionLog save(TransactionLog transactionLog) {
-        return transactionLogRepository.save(transactionLog);
-    }
-
-    public void deleteById(UUID id) {
-        transactionLogRepository.deleteById(id);
-    }
 }

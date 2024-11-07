@@ -14,6 +14,8 @@ import com.apifinance.jpa.exceptions.ResourceNotFoundException;
 import com.apifinance.jpa.models.Payment;
 import com.apifinance.jpa.repositories.PaymentRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class PaymentService {
 
@@ -33,6 +35,9 @@ public class PaymentService {
         payment.setPaymentStatus(PaymentStatus.PENDING);
         payment.setCreatedAt(ZonedDateTime.now());
         payment.setUpdatedAt(ZonedDateTime.now());
+
+        logger.info("Horário definido para createdAt: {}", payment.getCreatedAt());
+        logger.info("Horário definido para updatedAt: {}", payment.getUpdatedAt());
 
         Payment savedPayment = paymentRepository.save(payment);
         logger.info("Pagamento criado com sucesso: {}", savedPayment);
@@ -58,26 +63,44 @@ public class PaymentService {
         return payments;
     }
 
+    @Transactional
     public Payment updatePayment(UUID paymentId, Payment paymentDetails) {
+
         logger.info("Atualizando pagamento com ID: {}", paymentId);
-        
+        logger.info("Payload recebido para atualização de pagamento: {}", paymentDetails);
+
+        // Recuperando o pagamento existente
         Payment existingPayment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> {
                     logger.error("Pagamento não encontrado com ID: {}", paymentId);
                     return new ResourceNotFoundException("Pagamento não encontrado com ID: " + paymentId);
                 });
 
-        existingPayment.setCreatedAt(ZonedDateTime.now());
+        // Log do estado atual do pagamento antes da atualização
+        logger.info("Pagamento existente antes da atualização: {}", existingPayment);
+
+        // Atualizando os campos com as novas informações
         existingPayment.setAmount(paymentDetails.getAmount());
         existingPayment.setCurrency(paymentDetails.getCurrency());
         existingPayment.setPaymentType(paymentDetails.getPaymentType());
-        existingPayment.setUpdatedAt(ZonedDateTime.now());
 
-        Payment updatedPayment = paymentRepository.save(existingPayment);
-        logger.info("Pagamento atualizado com sucesso: {}", updatedPayment);
+        // Definindo o novo horário para updatedAt
+        ZonedDateTime newUpdatedAt = ZonedDateTime.now();
+        existingPayment.setUpdatedAt(newUpdatedAt);
 
-        String messageContent = updatedPayment.getId().toString(); // Apenas o ID do pagamento
+        // Log do horário definido para updatedAt antes da persistência
+        logger.info("Horário definido para updatedAt antes da persistência: {}", newUpdatedAt);
+
+        // Salvando as mudanças no banco de dados com saveAndFlush para forçar a persistência
+        Payment updatedPayment = paymentRepository.saveAndFlush(existingPayment);
+
+        // Log do horário persistido no banco para updatedAt após a atualização
+        logger.info("Horário persistido no banco para updatedAt após a atualização: {}", updatedPayment.getUpdatedAt());
+
+        // Enviar o ID do pagamento atualizado para o RabbitMQ
+        String messageContent = updatedPayment.getId().toString();
         rabbitMqService.publishMessage(messageContent);
+        logger.info("Mensagem enviada para o RabbitMQ com ID do pagamento: {}", updatedPayment.getId());
 
         return updatedPayment;
     }
@@ -89,7 +112,11 @@ public class PaymentService {
                     logger.error("Pagamento não encontrado com ID: {}", paymentId);
                     return new ResourceNotFoundException("Pagamento não encontrado com ID: " + paymentId);
                 });
+        rabbitMqService.deleteMessageByPaymentId(paymentId.toString());
+
+        // Exclua o pagamento
         paymentRepository.delete(payment);
-        logger.info("Pagamento com ID {} deletado com sucesso.", paymentId);
+        logger.info("Pagamento com ID {} deletado com sucesso, junto com as mensagens RabbitMQ associadas.", paymentId);
     }
+
 }
