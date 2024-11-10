@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +34,7 @@ public class FraudCheckController {
     }
 
     @PostMapping("/analyze")
-    public ResponseEntity<Void> processFraudAnalysis(@RequestBody FraudCheckRequest request) {
+    public ResponseEntity<String> processFraudAnalysis(@RequestBody FraudCheckRequest request) {
         logger.info("Iniciando análise de fraude para o pagamento ID: {}", request.getPaymentId());
         try {
             fraudCheckService.processAnalysis(
@@ -44,60 +43,49 @@ public class FraudCheckController {
                     request.getFraudStatus(),
                     request.getFraudReason()
             );
-            logger.info("Análise de fraude concluída para o pagamento ID: {}", request.getPaymentId());
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            return ResponseEntity.status(HttpStatus.CREATED).body("Análise de fraude concluída");
         } catch (IllegalArgumentException e) {
             logger.error("Erro ao analisar pagamento ID: {}: {}", request.getPaymentId(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro: " + e.getMessage());
         } catch (ResourceNotFoundException e) {
             logger.error("Erro: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Erro: " + e.getMessage());
         } catch (Exception e) {
             logger.error("Erro inesperado ao analisar pagamento ID: {}: {}", request.getPaymentId(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro inesperado");
         }
     }
 
     @GetMapping("/{fraudCheckId}")
-    public ResponseEntity<FraudCheckResponse> fetchFraudCheckById(@PathVariable UUID fraudCheckId) {
+    public ResponseEntity<?> fetchFraudCheckById(@PathVariable UUID fraudCheckId) {
         logger.info("Buscando verificação de fraude com ID: {}", fraudCheckId);
         try {
             FraudCheckResponse response = fraudCheckService.fetchById(fraudCheckId);
             return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             logger.error("Erro: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Erro: " + e.getMessage());
         } catch (Exception e) {
             logger.error("Erro inesperado: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro inesperado");
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<FraudCheckResponse>> fetchAllFraudChecks() {
+    public ResponseEntity<?> fetchAllFraudChecks() {
         logger.info("Buscando todas as verificações de fraude");
         List<FraudCheckResponse> fraudChecks = fraudCheckService.fetchAll();
+
+        if (fraudChecks.isEmpty()) {
+            logger.warn("Nenhuma verificação de fraude encontrada");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhuma verificação de fraude encontrada");
+        }
+
         return ResponseEntity.ok(fraudChecks);
     }
 
-    @DeleteMapping("/{fraudCheckId}")
-    public ResponseEntity<String> removeFraudCheck(@PathVariable UUID fraudCheckId) {
-        logger.info("Solicitação recebida para deletar verificação de fraude com ID: {}", fraudCheckId);
-        try {
-            fraudCheckService.deleteById(fraudCheckId);
-            logger.info("Verificação de fraude com ID {} deletada com sucesso", fraudCheckId);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Verificação de fraude deletada com sucesso.");
-        } catch (ResourceNotFoundException e) {
-            logger.error("Erro: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Verificação de fraude não encontrada com o ID: " + fraudCheckId);
-        } catch (Exception e) {
-            logger.error("Erro inesperado ao deletar verificação de fraude: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar verificação de fraude: " + e.getMessage());
-        }
-    }
-
     @PutMapping("/{fraudCheckId}")
-    public ResponseEntity<FraudCheckResponse> updateFraudCheck(
+    public ResponseEntity<?> updateFraudCheck(
             @PathVariable UUID fraudCheckId,
             @RequestBody FraudCheckRequest request) {
         logger.info("Atualizando verificação de fraude com ID: {}", fraudCheckId);
@@ -107,14 +95,13 @@ public class FraudCheckController {
             return ResponseEntity.ok(updatedFraudCheck);
         } catch (ResourceNotFoundException e) {
             logger.error("Erro: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Erro: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             logger.error("Erro ao atualizar verificação de fraude: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro: " + e.getMessage());
         } catch (Exception e) {
             logger.error("Erro inesperado ao atualizar verificação de fraude: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro inesperado");
         }
     }
-
 }

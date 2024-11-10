@@ -1,6 +1,5 @@
 package com.apifinance.jpa.services;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -72,7 +71,6 @@ public class CustomerService {
     }       
 
     public Customer updateCustomer(UUID id, Customer updatedCustomer) throws IllegalArgumentException {
-        // Valida as informações do cliente antes de prosseguir com a atualização
         validateCustomer(updatedCustomer);
     
         return customerRepository.findById(id).map(existingCustomer -> {
@@ -80,20 +78,9 @@ public class CustomerService {
             existingCustomer.setEmail(updatedCustomer.getEmail());
             existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
             
-            // Atualiza o campo createdAt com o valor do updatedCustomer ou usa ZonedDateTime.now() se for necessário
-            existingCustomer.setCreatedAt(updatedCustomer.getCreatedAt() != null ? updatedCustomer.getCreatedAt() : ZonedDateTime.now());
-            
-            return customerRepository.save(existingCustomer); // Salva as alterações
-        }).orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado")); // Lança exceção se não encontrar o cliente
+            return customerRepository.save(existingCustomer); 
+        }).orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado")); 
     }
     
-
-    public boolean deleteCustomerById(UUID id) {
-        logger.info("Buscando e deletando cliente com ID: {}", id);
-        return customerRepository.findById(id).map(customer -> {
-            customerRepository.delete(customer);
-            return true;
-        }).orElse(false);
-    }
     
 }

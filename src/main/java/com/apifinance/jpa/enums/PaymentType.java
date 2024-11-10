@@ -9,7 +9,7 @@ public enum PaymentType {
     BOLETO("Boleto"),
     PIX("PIX");
 
-    private final String description; // Descrição do método de pagamento
+    private final String description; 
 
     PaymentType(String description) {
         this.description = description;

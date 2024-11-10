@@ -76,28 +76,21 @@ public class PaymentService {
                     return new ResourceNotFoundException("Pagamento não encontrado com ID: " + paymentId);
                 });
 
-        // Log do estado atual do pagamento antes da atualização
         logger.info("Pagamento existente antes da atualização: {}", existingPayment);
 
-        // Atualizando os campos com as novas informações
         existingPayment.setAmount(paymentDetails.getAmount());
         existingPayment.setCurrency(paymentDetails.getCurrency());
         existingPayment.setPaymentType(paymentDetails.getPaymentType());
 
-        // Definindo o novo horário para updatedAt
         ZonedDateTime newUpdatedAt = ZonedDateTime.now();
         existingPayment.setUpdatedAt(newUpdatedAt);
 
-        // Log do horário definido para updatedAt antes da persistência
         logger.info("Horário definido para updatedAt antes da persistência: {}", newUpdatedAt);
 
-        // Salvando as mudanças no banco de dados com saveAndFlush para forçar a persistência
         Payment updatedPayment = paymentRepository.saveAndFlush(existingPayment);
 
-        // Log do horário persistido no banco para updatedAt após a atualização
         logger.info("Horário persistido no banco para updatedAt após a atualização: {}", updatedPayment.getUpdatedAt());
 
-        // Enviar o ID do pagamento atualizado para o RabbitMQ
         String messageContent = updatedPayment.getId().toString();
         rabbitMqService.publishMessage(messageContent);
         logger.info("Mensagem enviada para o RabbitMQ com ID do pagamento: {}", updatedPayment.getId());
@@ -105,18 +98,5 @@ public class PaymentService {
         return updatedPayment;
     }
 
-    public void deletePayment(UUID paymentId) {
-        logger.info("Deletando pagamento com ID: {}", paymentId);
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> {
-                    logger.error("Pagamento não encontrado com ID: {}", paymentId);
-                    return new ResourceNotFoundException("Pagamento não encontrado com ID: " + paymentId);
-                });
-        rabbitMqService.deleteMessageByPaymentId(paymentId.toString());
-
-        // Exclua o pagamento
-        paymentRepository.delete(payment);
-        logger.info("Pagamento com ID {} deletado com sucesso, junto com as mensagens RabbitMQ associadas.", paymentId);
-    }
 
 }

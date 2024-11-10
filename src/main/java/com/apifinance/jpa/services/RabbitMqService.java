@@ -41,7 +41,6 @@ public class RabbitMqService {
             return newMessage;
         });
 
-            
         try {
 
             rabbitTemplate.convertAndSend("paymentQueue", messageContent);
@@ -90,19 +89,4 @@ public class RabbitMqService {
         logger.info("Mensagem recuperada com ID {}: {}", id, message);
         return message;
     }
-
-    public void deleteMessage(UUID id) {
-        rabbitRepository.deleteById(id);
-        logger.info("Mensagem com ID {} foi deletada.", id);
-    }
-
-    public void deleteMessageByPaymentId(String paymentId) {
-        rabbitRepository.findByMessageContent(paymentId)
-                .ifPresent(rabbitMqMessage -> {
-                    rabbitRepository.delete(rabbitMqMessage);
-                    logger.info("Mensagem RabbitMQ com paymentId {} excluída com sucesso.", paymentId);
-                });
-    }
-    
-
 }

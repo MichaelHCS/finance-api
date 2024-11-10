@@ -1,12 +1,13 @@
 package com.apifinance.jpa.services;
 
-import com.apifinance.jpa.models.PaymentMethod;
-import com.apifinance.jpa.repositories.PaymentMethodRepository;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import com.apifinance.jpa.models.PaymentMethod;
+import com.apifinance.jpa.repositories.PaymentMethodRepository;
 
 @Service
 public class PaymentMethodService {
@@ -30,7 +31,4 @@ public class PaymentMethodService {
         return paymentMethodRepository.save(paymentMethod);
     }
 
-    public void deleteById(UUID id) {
-        paymentMethodRepository.deleteById(id);
-    }
 }

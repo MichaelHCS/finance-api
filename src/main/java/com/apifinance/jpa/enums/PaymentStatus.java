@@ -8,14 +8,12 @@ public enum PaymentStatus {
     APPROVED("Pagamento aprovado"),
     REJECTED("Pagamento rejeitado");
 
-    private final String description;// Detalhe sobre o status
+    private final String description;
 
-    // Construtor da enumeração
     PaymentStatus(String description) {
         this.description = description;
     }
 
-    // Método para obter o detalhe do status
     @JsonValue
     public String getDetail() {
         return description;
@@ -25,9 +23,9 @@ public enum PaymentStatus {
     public static PaymentStatus fromValue(String value) {
         for (PaymentStatus status : PaymentStatus.values()) {
             if (status.name().equalsIgnoreCase(value)) {
-                return status; // Retorna o enum correspondente ao valor string
+                return status; 
             }
         }
-        throw new IllegalArgumentException("Unknown value: " + value); // Lança exceção se o valor não for reconhecido
+        throw new IllegalArgumentException("Unknown value: " + value); 
     }
 }

@@ -25,18 +25,16 @@ public enum FraudCheckStatus {
     public static FraudCheckStatus fromValue(String value) {
         for (FraudCheckStatus status : FraudCheckStatus.values()) {
             if (status.name().equalsIgnoreCase(value)) {
-                return status; // Retorna o enum correspondente ao valor string
+                return status; 
             }
         }
-        throw new IllegalArgumentException("Unknown value: " + value); // Lança exceção se o valor não for reconhecido
+        throw new IllegalArgumentException("Unknown value: " + value); 
     }
      public PaymentStatus toPaymentStatus() {
-        // Criar um mapa para associar FraudCheckStatus a PaymentStatus
         Map<FraudCheckStatus, PaymentStatus> statusMapping = new HashMap<>();
         statusMapping.put(APPROVED, PaymentStatus.APPROVED);
         statusMapping.put(REJECTED, PaymentStatus.REJECTED);
 
-        // Retornar o status correspondente ou lançar uma exceção se não encontrado
         PaymentStatus paymentStatus = statusMapping.get(this);
         if (paymentStatus == null) {
             throw new IllegalArgumentException("Status de pagamento inválido.");
