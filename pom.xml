@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId> <!-- Remova se não precisar no início -->
+            <artifactId>spring-boot-starter-amqp</artifactId> 
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
